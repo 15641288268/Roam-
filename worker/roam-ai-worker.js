@@ -14,7 +14,6 @@ export default {
   let payload;try{payload=await request.json()}catch{return reply({error:'Invalid JSON'},400)}
   const isRoute=new URL(request.url).pathname==='/route-analyze';
   const {data,filename}=payload||{};
-  const isRoute=new URL(request.url).pathname==='/route-analyze';
   const inputs=isRoute&&Array.isArray(payload.images)?payload.images:[data];
   if(!inputs.length||inputs.length>6)return reply({error:'请选择1到6张截图'},400);
   if(inputs.some(v=>typeof v!=='string'||v.length>20e6)||inputs.reduce((n,v)=>n+v.length,0)>28e6)return reply({error:'图片总大小超过限制，请缩小截图'},413);
