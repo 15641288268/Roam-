@@ -1,5 +1,39 @@
-// Deploy as a Cloudflare Worker. Set secrets OPENAI_API_KEY and ROAM_ACCESS_TOKEN.
-// Set allowed origin to the Roam GitHub Pages site.
+// Roam V24 - Gemini document understanding. Set GEMINI_API_KEY and ROAM_ACCESS_TOKEN as Worker runtime Secrets.
 const ORIGIN='https://15641288268.github.io';
-export default {async fetch(request,env){const headers={'Access-Control-Allow-Origin':ORIGIN,'Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, X-Roam-Token','Vary':'Origin','Content-Type':'application/json','Cache-Control':'no-store'};const reply=(body,status=200)=>new Response(JSON.stringify(body),{status,headers});if(request.method==='OPTIONS')return new Response(null,{status:204,headers});if(request.method!=='POST'||new URL(request.url).pathname!=='/analyze')return reply({error:'Not found'},404);if(request.headers.get('Origin')!==ORIGIN)return reply({error:'Origin denied'},403);if(!env.OPENAI_API_KEY||!env.ROAM_ACCESS_TOKEN)return reply({error:'Server secrets missing'},503);if(request.headers.get('X-Roam-Token')!==env.ROAM_ACCESS_TOKEN)return reply({error:'Invalid access token'},401);const size=Number(request.headers.get('content-length')||0);if(size>19e6)return reply({error:'File too large'},413);let payload;try{payload=await request.json()}catch{return reply({error:'Invalid JSON'},400)}const {data,filename,mime}=payload;if(typeof data!=='string'||data.length>19e6||!/^data:(application\/pdf|image\/(png|jpeg|webp|gif));base64,/.test(data))return reply({error:'PDF or image required'},400);const isPdf=data.startsWith('data:application/pdf');const input=isPdf?{type:'input_file',filename:String(filename||'booking.pdf').slice(0,120),file_data:data}:{type:'input_image',image_url:data};const prompt='You are a multilingual travel booking document analyst. Analyze ALL pages visually and read text. Return one booking for the SAME venue/time even when multiple ticket holders/pages. Distinguish museum tickets from train tickets. Extract exact original venue name and accurate Simplified Chinese translation; never invent unknown details. Prefer Visit Date and Visiting Hour over support hours. totalAmount is sum of prices across all pages only if they represent different tickets, not duplicate pages. Do not include personal names. Return JSON with keys type (one of 住宿,机票,火车,门票,餐厅,其他), nameOriginal, nameZh, date (YYYY-MM-DD), time (HH:mm), endTime (HH:mm or empty), quantity (number), currency (ISO 4217), totalAmount (number), platform (string), reference (string or empty).';try{const r=await fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{'Authorization':'Bearer '+env.OPENAI_API_KEY,'Content-Type':'application/json'},body:JSON.stringify({model:'gpt-4.1-mini',max_output_tokens:1000,input:[{role:'user',content:[{type:'input_text',text:prompt},input]}],text:{format:{type:'json_object'}}})});const out=await r.json();if(!r.ok)return reply({error:'AI service error: '+(out.error?.message||r.status)},502);const content=out.output?.flatMap(x=>x.content||[]).filter(x=>x.type==='output_text').map(x=>x.text).join('')||'';const booking=JSON.parse(content);if(!booking.nameOriginal||!booking.type)return reply({error:'AI could not identify booking'},422);return reply({booking})}catch(e){return reply({error:'AI parsing failed: '+e.message},502)}}};
-// Trigger first Cloudflare Git-connected build for roma-ai.
+const MODEL='gemini-2.5-flash';
+export default {
+ async fetch(request,env){
+  const headers={'Access-Control-Allow-Origin':ORIGIN,'Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, X-Roam-Token','Vary':'Origin','Content-Type':'application/json','Cache-Control':'no-store'};
+  const reply=(body,status=200)=>new Response(JSON.stringify(body),{status,headers});
+  if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
+  if(request.method!=='POST'||new URL(request.url).pathname!=='/analyze')return reply({error:'Not found'},404);
+  if(request.headers.get('Origin')!==ORIGIN)return reply({error:'Origin denied'},403);
+  if(!env.GEMINI_API_KEY||!env.ROAM_ACCESS_TOKEN)return reply({error:'请在 Cloudflare Worker Runtime secrets 配置 GEMINI_API_KEY 和 ROAM_ACCESS_TOKEN'},503);
+  if(request.headers.get('X-Roam-Token')!==env.ROAM_ACCESS_TOKEN)return reply({error:'访问口令错误'},401);
+  if(Number(request.headers.get('content-length')||0)>21e6)return reply({error:'文件太大'},413);
+  let payload;try{payload=await request.json()}catch{return reply({error:'Invalid JSON'},400)}
+  const {data,filename}=payload||{};
+  if(typeof data!=='string'||data.length>21e6)return reply({error:'文件太大或格式错误'},400);
+  const match=data.match(/^data:(application\/pdf|image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=]+)$/);
+  if(!match)return reply({error:'仅支持 PDF、PNG、JPEG 或 WEBP'},400);
+  const mime=match[1],base64=match[2];
+  const prompt=`你是专业的旅行预订凭证分析助手。请直接视觉理解上传的完整 PDF/图片，提取准确的信息，不能凭空猜测。优先识别实际参观日期和预约时间而非票据打印时间。景点博物馆门票不得误识别成火车票。对同一场所同一时段的多页不同持票人票据合并为一笔预订；只汇总不同票据的票价，避免重复计算。地点请提供自然准确的简体中文翻译以及票据原文（英语或当地语言）。不要返回旅客姓名、邮箱、电话或其他个人信息。金额币种应为 ISO 4217，例如 EUR。所有不确定的字段使用空字符串或0，不得杜撰。严格返回单个 JSON 对象，字段为 type（只能是 住宿/机票/火车/门票/餐厅/其他）、nameOriginal、nameZh、date（YYYY-MM-DD）、time（HH:mm）、endTime（HH:mm或空）、quantity（整数）、currency、totalAmount（数字）、platform、reference。文件名：${String(filename||'').slice(0,120)}`;
+  try{
+   const response=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+MODEL+':generateContent',{
+    method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':env.GEMINI_API_KEY},
+    body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt},{inline_data:{mime_type:mime,data:base64}}]}],generationConfig:{responseMimeType:'application/json',temperature:0.1,maxOutputTokens:2048}})
+   });
+   const result=await response.json().catch(()=>({}));
+   if(!response.ok){const detail=result.error?.message||'HTTP '+response.status;return reply({error:'Gemini API：'+detail},response.status===429?429:502)}
+   const raw=(result.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('');
+   if(!raw)return reply({error:'Gemini 没有返回识别结果，请重试'},422);
+   const booking=JSON.parse(raw);
+   if(!booking.nameOriginal||!booking.type)return reply({error:'未识别出有效的预订地点'},422);
+   const allowed=['住宿','机票','火车','门票','餐厅','其他'];
+   booking.type=allowed.includes(booking.type)?booking.type:'其他';
+   booking.quantity=Math.max(1,Math.min(1000,Math.floor(Number(booking.quantity)||1)));
+   booking.totalAmount=Math.max(0,Number(booking.totalAmount)||0);
+   return reply({booking});
+  }catch(e){return reply({error:'AI 识别异常：'+e.message},502)}
+ }
+};
