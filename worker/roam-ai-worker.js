@@ -14,19 +14,13 @@ export default {
   let payload;try{payload=await request.json()}catch{return reply({error:'Invalid JSON'},400)}
   const isRoute=new URL(request.url).pathname==='/route-analyze';
   const {data,filename}=payload||{};
-  const sources=isRoute&&Array.isArray(payload?.images)?payload.images:[{data,filename}];
-  if(sources.length<1||sources.length>(isRoute?8:1))return reply({error:'截图数量应为1至8张'},400);
-  const parts=[];let total=0;
-  for(let i=0;i<sources.length;i++){
-   const item=sources[i];
-   if(typeof item?.data!=='string'||item.data.length>16e6)return reply({error:'单张图片过大或格式错误'},400);
-   const match=item.data.match(/^data:(application\/pdf|image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=]+)$/);
-   if(!match||isRoute&&match[1]==='application/pdf')return reply({error:'路线截图仅支持 PNG、JPEG 或 WEBP'},400);
-   total+=item.data.length;
-   parts.push({text:'截图 '+(i+1)+' / '+sources.length+'：'+String(item.filename||'').slice(0,100)});
-   parts.push({inline_data:{mime_type:match[1],data:match[2]}});
-  }
-  if(total>50e6)return reply({error:'截图总大小过大，请压缩或分批上传'},413);
+  const isRoute=new URL(request.url).pathname==='/route-analyze';
+  const inputs=isRoute&&Array.isArray(payload.images)?payload.images:[data];
+  if(!inputs.length||inputs.length>6)return reply({error:'请选择1到6张截图'},400);
+  if(inputs.some(v=>typeof v!=='string'||v.length>20e6)||inputs.reduce((n,v)=>n+v.length,0)>28e6)return reply({error:'图片总大小超过限制，请缩小截图'},413);
+  const parsed=inputs.map(v=>v.match(/^data:(application\\/pdf|image\\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=]+)$/));
+  if(parsed.some(v=>!v))return reply({error:'仅支持 PDF、PNG、JPEG 或 WEBP'},400);
+  const parts=parsed.map((m,i)=>({inline_data:{mime_type:m[1],data:m[2]}}));
   const prompt=isRoute?`你是交通路线截图识别助手。同时分析用户上传的 ${sources.length} 张 Google Maps 路线截图。这些截图属于同一条长路线，可能有上下重叠的区域、不同滚动位置或多个备选方案。必须跨图联合重建完整路线，按实际出行顺序合并步骤，识别上下图重叠的相同步骤并去重，切勿把同一线路拆成多个独立路线。若截图显示不同备选方案，分别输出为 options。不得重复累计费用和耗时。提取所有可见的备选方案、换乘步骤。只能提取截图明确可见的信息，不得推测或杜撰未显示的上下车站、班次、票价、时间。返回JSON对象：{ "from":"起点", "to":"终点", "options":[{"name":"方案1","mode":"公交","minutes":29,"cost":230,"currency":"JPY","departure":"20:43","arrival":"21:12","steps":[{"mode":"步行","line":"","from":"","to":"","minutes":10,"departure":""},{"mode":"公交","line":"202 City Bus","from":"清水道","to":"","minutes":0,"departure":"20:53"}]}] }。每种备选路线都要单独输出，若信息未显示，字符串为空、数字为0。识别公共交通、步行、JR、地铁、公交、出租车等模式。不要输出额外说明。`:`你是专业的旅行预订凭证分析助手。请直接视觉理解上传的完整 PDF/图片，提取准确的信息，不能凭空猜测。优先识别实际参观日期和预约时间而非票据打印时间。景点博物馆门票不得误识别成火车票。对同一场所同一时段的多页不同持票人票据合并为一笔预订；只汇总不同票据的票价，避免重复计算。地点请提供自然准确的简体中文翻译以及票据原文（英语或当地语言）。不要返回旅客姓名、邮箱、电话或其他个人信息。金额币种应为 ISO 4217，例如 EUR。所有不确定的字段使用空字符串或0，不得杜撰。严格返回单个 JSON 对象，字段为 type（只能是 住宿/机票/火车/门票/餐厅/其他）、nameOriginal、nameZh、date（YYYY-MM-DD）、time（HH:mm）、endTime（HH:mm或空）、quantity（整数）、currency、totalAmount（数字）、platform、reference。如果是机票或火车票，还要在 JSON 中提供 transport 对象，字段 carrier、number、from、to、departureDate、departureTime、arrivalDate、arrivalTime、boardingTime、terminal、gate、arrivalTerminal、platform、carriage、seat、cabin、baggage、ticketNumber。日期 YYYY-MM-DD，时间 HH:mm，必须分别使用出发地和到达地的当地时间，跨日航班不得将到达日期误填为出发日期。仅提取票据明确标注的内容，不要猜测机场、航站楼、登机口、检票时间。其他类型 transport 为 {}。文件名：${String(filename||'').slice(0,120)}`;
   try{
    const response=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+MODEL+':generateContent',{
