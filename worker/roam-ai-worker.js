@@ -16,7 +16,7 @@ export default {
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
   if(request.method!=='POST'||!['/analyze','/route-analyze'].includes(new URL(request.url).pathname))return reply({error:'Not found'},404);
   if(request.headers.get('Origin')!==ORIGIN)return reply({error:'Origin denied'},403);
-  if((!env.GEMINI_API_KEY&&!env.OPENROUTER_API_KEY)||!env.ROAM_ACCESS_TOKEN)return reply({error:'请在 Cloudflare Worker Runtime secrets 配置 GEMINI_API_KEY 和 ROAM_ACCESS_TOKEN'},503);
+  if((!env.GEMINI_API_KEY&&!env.OPENROUTER_API_KEY&&!env.GROQ_API_KEY)||!env.ROAM_ACCESS_TOKEN)return reply({error:'请在 Cloudflare Worker Runtime secrets 配置 GEMINI_API_KEY 和 ROAM_ACCESS_TOKEN'},503);
   if(request.headers.get('X-Roam-Token')!==env.ROAM_ACCESS_TOKEN)return reply({error:'访问口令错误'},401);
   if(Number(request.headers.get('content-length')||0)>55e6)return reply({error:'文件太大'},413);
   let payload;try{payload=await request.json()}catch{return reply({error:'Invalid JSON'},400)}
@@ -42,7 +42,7 @@ export default {
     if(response.ok){raw=(result.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('');provider='Gemini'}
     else{
      geminiError=result.error?.message||'HTTP '+response.status;
-     if(![429,500,502,503,504].includes(response.status)||!env.OPENROUTER_API_KEY)return reply({error:'Gemini API：'+geminiError+(response.status===429&&!env.OPENROUTER_API_KEY?'。可在 Worker 添加 OPENROUTER_API_KEY 启用免费备用 AI。':'')},response.status===429?429:502);
+     if(![429,500,502,503,504].includes(response.status)||(!env.OPENROUTER_API_KEY&&!env.GROQ_API_KEY))return reply({error:'Gemini API：'+geminiError+(response.status===429&&!env.OPENROUTER_API_KEY?'。可在 Worker 添加 OPENROUTER_API_KEY 启用免费备用 AI。':'')},response.status===429?429:502);
     }
    }
    if((!raw||!parseAIJSON(raw))&&env.OPENROUTER_API_KEY){
@@ -52,7 +52,7 @@ export default {
      body:JSON.stringify({model:'openrouter/free',messages:[{role:'user',content}],temperature:0.1,max_tokens:isRoute?8192:4096})
     });
     const altResult=await alt.json().catch(()=>({}));
-    if(!alt.ok)return reply({error:'备用 OpenRouter 免费模型也无法识别：'+(altResult.error?.message||'HTTP '+alt.status)+(geminiError?'；Gemini：'+geminiError:'')},alt.status===429?429:502);
+    if(!alt.ok){geminiError+='；OpenRouter：'+(altResult.error?.message||'HTTP '+alt.status);raw='';}else{
     const answer=altResult.choices?.[0]?.message?.content;
     raw=typeof answer==='string'?answer:Array.isArray(answer)?answer.map(p=>p.text||'').join(''):'';
     provider='OpenRouter 免费模型';
@@ -60,6 +60,15 @@ export default {
      const repair=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+env.OPENROUTER_API_KEY,'Content-Type':'application/json','HTTP-Referer':'https://15641288268.github.io/Roam-/','X-Title':'Roam Travel Planner'},body:JSON.stringify({model:'openrouter/free',messages:[{role:'user',content:[{type:'text',text:fullPrompt+'\\n必须只输出合法JSON对象，不要解释、分析、User Safety说明。'},...content.slice(1)]}],temperature:0,max_tokens:isRoute?8192:4096})});
      if(repair.ok){const rr=await repair.json().catch(()=>({}));const aa=rr.choices?.[0]?.message?.content;const repaired=typeof aa==='string'?aa:Array.isArray(aa)?aa.map(p=>p.text||'').join(''):'';if(parseAIJSON(repaired))raw=repaired}
     }
+    }
+   }
+   if(!parseAIJSON(raw)&&env.GROQ_API_KEY){
+    const groqInputs=inputs.slice(0,3).map(input=>({type:'image_url',image_url:{url:input}}));
+    const groqContent=[{type:'text',text:fullPrompt+'\n请仅输出合法 JSON 对象。'},...groqInputs];
+    const groq=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+env.GROQ_API_KEY,'Content-Type':'application/json'},body:JSON.stringify({model:'qwen/qwen3.8-27b',messages:[{role:'user',content:groqContent}],response_format:{type:'json_object'},temperature:0,max_completion_tokens:isRoute?4096:3000})});
+    const groqResult=await groq.json().catch(()=>({}));
+    if(groq.ok){const answer=groqResult.choices?.[0]?.message?.content;const candidate=typeof answer==='string'?answer:Array.isArray(answer)?answer.map(p=>p.text||'').join(''):'';if(parseAIJSON(candidate)){raw=candidate;provider='Groq Qwen Vision'}}
+    if(!parseAIJSON(raw))return reply({error:'三个 AI 服务均未成功：'+(groqResult.error?.message||'Groq 未返回有效 JSON')+(geminiError?'；'+geminiError:'')},groq.status===429?429:502);
    }
    if(!raw)return reply({error:'AI 没有返回识别结果，请重试'},422);
    const booking=parseAIJSON(raw);
