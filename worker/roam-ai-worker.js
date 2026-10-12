@@ -60,8 +60,8 @@ export default {
     }
    }
    if(!raw)return reply({error:'AI 没有返回识别结果，请重试'},422);
-   raw=raw.trim().replace(/^\\`\\`\\`(?:json)?\\s*/i,'').replace(/\\s*\\`\\`\\`$/,'');
-   const booking=JSON.parse(raw);
+   const booking=parseAIJSON(raw);
+   if(!booking)return reply({error:'AI 返回内容不是有效 JSON，自动重试后仍无法解析；请稍后重试。'},422);
    if(isRoute){if(!Array.isArray(booking.options)||!booking.options.length)return reply({error:'未能识别路线方案'},422);return reply({provider,route:{from:String(booking.from||''),to:String(booking.to||''),options:booking.options.slice(0,8).map(o=>({name:String(o.name||''),mode:String(o.mode||'公交'),minutes:Math.max(0,Number(o.minutes)||0),cost:Math.max(0,Number(o.cost)||0),currency:String(o.currency||''),departure:String(o.departure||''),arrival:String(o.arrival||''),steps:Array.isArray(o.steps)?o.steps.slice(0,20):[],bookingIds:[]}))}})}
 
    if(!booking.nameOriginal||!booking.type)return reply({error:'未识别出有效的预订地点'},422);
