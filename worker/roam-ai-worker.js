@@ -52,6 +52,19 @@ async function textAssistantV68(payload,env){
   },d=>d.choices?.[0]?.message?.content);
   if(result)return result;
  }
+ // Cloudflare Workers AI: fourth, quota-limited free text fallback; requires AI binding, not another API key.
+ if(env.AI&&typeof env.AI.run==='function'){
+  try{
+   const output=await Promise.race([
+    env.AI.run('@cf/meta/llama-3.1-8b-instruct-fp8',{messages:[{role:'system',content:'你是旅行规划助手。只返回合法 JSON 对象，不要附加解释。'},{role:'user',content:prompt}],max_tokens:3200,temperature:0.2}),
+    new Promise((_,reject)=>setTimeout(()=>reject(Error('响应超时')),14500))
+   ]);
+   const answer=typeof output==='string'?output:output?.response||output?.result?.response||'';
+   const result=accept(answer,'Cloudflare Workers AI');
+   if(result)return result;
+   errors.push('Cloudflare Workers AI 返回格式不符合要求');
+  }catch(e){errors.push('Cloudflare Workers AI：'+String(e?.message||e).slice(0,120))}
+ }
  return {error:'AI 服务均未成功（每个服务最多等待约12秒）：'+errors.join('；'),status:503};
 }
 
@@ -62,7 +75,9 @@ export default {
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
   if(request.method!=='POST'||!['/analyze','/route-analyze','/assistant'].includes(new URL(request.url).pathname))return reply({error:'Not found'},404);
   if(request.headers.get('Origin')!==ORIGIN)return reply({error:'Origin denied'},403);
-  if((!env.GEMINI_API_KEY&&!env.OPENROUTER_API_KEY&&!env.GROQ_API_KEY)||!env.ROAM_ACCESS_TOKEN)return reply({error:'请在 Cloudflare Worker Runtime secrets 配置 GEMINI_API_KEY 和 ROAM_ACCESS_TOKEN'},503);
+  if(!env.ROAM_ACCESS_TOKEN)return reply({error:'请在 Cloudflare Worker Runtime secrets 配置 ROAM_ACCESS_TOKEN'},503);
+  const path=new URL(request.url).pathname;
+  if(!env.GEMINI_API_KEY&&!env.OPENROUTER_API_KEY&&!env.GROQ_API_KEY&&!(path==='/assistant'&&env.AI))return reply({error:path==='/assistant'?'请配置 Groq、Gemini、OpenRouter 任一密钥，或添加 Cloudflare Workers AI 绑定（名称 AI）':'截图与凭证识别需要 GEMINI_API_KEY、OPENROUTER_API_KEY 或 GROQ_API_KEY'},503);
   if(request.headers.get('X-Roam-Token')!==env.ROAM_ACCESS_TOKEN)return reply({error:'访问口令错误'},401);
   if(Number(request.headers.get('content-length')||0)>55e6)return reply({error:'文件太大'},413);
   let payload;try{payload=await request.json()}catch{return reply({error:'Invalid JSON'},400)}
