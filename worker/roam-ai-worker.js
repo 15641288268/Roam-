@@ -1,3 +1,11 @@
+function parseAIJSON(text){
+ const raw=String(text||'').trim();
+ const candidates=[raw,raw.replace(/^\`\`\`(?:json)?\s*/i,'').replace(/\s*\`\`\`$/,'')];
+ const start=raw.indexOf('{'),end=raw.lastIndexOf('}');
+ if(start>=0&&end>start)candidates.push(raw.slice(start,end+1));
+ for(const candidate of candidates){try{const obj=JSON.parse(candidate);if(obj&&typeof obj==='object'&&!Array.isArray(obj))return obj}catch{}}
+ return null;
+}
 // Roam V24 - Gemini document understanding. Set GEMINI_API_KEY and ROAM_ACCESS_TOKEN as Worker runtime Secrets.
 const ORIGIN='https://15641288268.github.io';
 const MODEL='gemini-3.8-flash';
@@ -35,7 +43,7 @@ export default {
      if(![429,500,502,503,504].includes(response.status)||!env.OPENROUTER_API_KEY)return reply({error:'Gemini API：'+geminiError+(response.status===429&&!env.OPENROUTER_API_KEY?'。可在 Worker 添加 OPENROUTER_API_KEY 启用免费备用 AI。':'')},response.status===429?429:502);
     }
    }
-   if(!raw&&env.OPENROUTER_API_KEY){
+   if((!raw||!parseAIJSON(raw))&&env.OPENROUTER_API_KEY){
     const content=[{type:'text',text:prompt+'\\n只返回一个合法 JSON 对象，不要 Markdown 代码块。'},...inputs.map((input,i)=>parsed[i][1]==='application/pdf'?{type:'file',file:{filename:(filename||'ticket.pdf'),file_data:input}}:{type:'image_url',image_url:{url:input}})];
     const alt=await fetch('https://openrouter.ai/api/v1/chat/completions',{
      method:'POST',headers:{'Authorization':'Bearer '+env.OPENROUTER_API_KEY,'Content-Type':'application/json','HTTP-Referer':'https://15641288268.github.io/Roam-/','X-Title':'Roam Travel Planner'},
@@ -46,6 +54,10 @@ export default {
     const answer=altResult.choices?.[0]?.message?.content;
     raw=typeof answer==='string'?answer:Array.isArray(answer)?answer.map(p=>p.text||'').join(''):'';
     provider='OpenRouter 免费模型';
+    if(!parseAIJSON(raw)){
+     const repair=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+env.OPENROUTER_API_KEY,'Content-Type':'application/json','HTTP-Referer':'https://15641288268.github.io/Roam-/','X-Title':'Roam Travel Planner'},body:JSON.stringify({model:'openrouter/free',messages:[{role:'user',content:[{type:'text',text:prompt+'\\n必须只输出合法JSON对象，不要解释、分析、User Safety说明。'},...content.slice(1)]}],temperature:0,max_tokens:isRoute?8192:4096})});
+     if(repair.ok){const rr=await repair.json().catch(()=>({}));const aa=rr.choices?.[0]?.message?.content;const repaired=typeof aa==='string'?aa:Array.isArray(aa)?aa.map(p=>p.text||'').join(''):'';if(parseAIJSON(repaired))raw=repaired}
+    }
    }
    if(!raw)return reply({error:'AI 没有返回识别结果，请重试'},422);
    raw=raw.trim().replace(/^\\`\\`\\`(?:json)?\\s*/i,'').replace(/\\s*\\`\\`\\`$/,'');
