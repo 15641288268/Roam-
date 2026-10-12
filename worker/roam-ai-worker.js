@@ -11,16 +11,48 @@ const ORIGIN='https://15641288268.github.io';
 const MODEL='gemini-3.8-flash';
 
 async function textAssistantV68(payload,env){
- const mode=String(payload.mode||'chat'),question=String(payload.prompt||'').slice(0,6000),context=JSON.stringify(payload.context||{}).slice(0,14000);
+ const mode=String(payload.mode||'chat'),question=String(payload.prompt||'').slice(0,5000),context=JSON.stringify(payload.context||{}).slice(0,8000);
  if(!question.trim())return {error:'请输入 AI 请求',status:400};
  const schemas={plan:'{"summary":"说明","destination":"城市","days":[{"day":1,"places":[{"name":"真实景点名称","activity":"游玩活动","time":"09:00","type":"景点","minutes":90,"cost":0}]}]}',place:'{"answer":"景点建议、附近餐饮、游览时长及待核实信息"}',optimize:'{"answer":"优化建议，按天说明行程与交通安排"}',budget:'{"answer":"预算分析与省钱建议"}'};
- const prompt='你是 Roam 旅行助手。仅用简体中文，不能虚构实时票价、营业时间、实时班次、预约网址。JSON 必须有效。'+(mode==='plan'?'主标题地点名必须是实际地图实体，活动另写activity。每天最多8个地点，最多14天。':'')+'按照 JSON 格式返回：'+(schemas[mode]||'{"answer":"中文答复"}')+'\n旅行上下文：'+context+'\n用户要求：'+question;
+ const prompt='你是 Roam 旅行助手。仅用简体中文，不能虚构实时票价、营业时间、实时班次、预约网址。JSON 必须有效。'+(mode==='plan'?'地点名必须是地图上的真实实体，活动另写activity。每天最多8个地点，最多14天。输出简洁，每个景点不超过60字。':'')+'按照 JSON 格式返回：'+(schemas[mode]||'{"answer":"中文答复"}')+'\n旅行上下文：'+context+'\n用户要求：'+question;
  const errors=[];
- const accept=(t,provider)=>{const result=parseAIJSON(t);return result?{result,provider}:null};
- if(env.GEMINI_API_KEY){try{const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+MODEL+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':env.GEMINI_API_KEY},body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{responseMimeType:'application/json',temperature:0.2,maxOutputTokens:8192}})});const d=await r.json();if(r.ok){const v=accept((d.candidates?.[0]?.content?.parts||[]).map(x=>x.text||'').join(''),'Gemini');if(v)return v}errors.push('Gemini '+(d.error?.message||r.status))}catch(e){errors.push(e.message)}}
- if(env.OPENROUTER_API_KEY){try{const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{Authorization:'Bearer '+env.OPENROUTER_API_KEY,'Content-Type':'application/json'},body:JSON.stringify({model:'openrouter/free',messages:[{role:'user',content:prompt}],temperature:0.2,max_tokens:8192})});const d=await r.json();if(r.ok){const v=accept(d.choices?.[0]?.message?.content,'OpenRouter');if(v)return v}errors.push('OpenRouter '+(d.error?.message||r.status))}catch(e){errors.push(e.message)}}
- if(env.GROQ_API_KEY){try{const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{Authorization:'Bearer '+env.GROQ_API_KEY,'Content-Type':'application/json'},body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:prompt}],response_format:{type:'json_object'},temperature:0.2,max_tokens:6000})});const d=await r.json();if(r.ok){const v=accept(d.choices?.[0]?.message?.content,'Groq');if(v)return v}errors.push('Groq '+(d.error?.message||r.status))}catch(e){errors.push(e.message)}}
- return {error:'AI 服务暂不可用：'+errors.join('；'),status:503};
+ const accept=(value,provider)=>{const parsed=parseAIJSON(typeof value==='string'?value:'');if(!parsed)return null;if(mode==='plan'&&(!Array.isArray(parsed.days)||!parsed.days.length))return null;return {result:parsed,provider}};
+ async function limited(label,url,options,parseReply,ms=11500){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),ms);
+  try{
+   const r=await fetch(url,{...options,signal:controller.signal});
+   const d=await r.json().catch(()=>({}));
+   if(!r.ok){errors.push(label+' HTTP '+r.status+': '+String(d.error?.message||'服务限流或模型不可用').slice(0,120));return null}
+   const result=accept(parseReply(d),label);
+   if(!result)errors.push(label+' 返回格式不符合要求');
+   return result;
+  }catch(e){errors.push(label+(controller.signal.aborted?' 响应超时（'+Math.round(ms/1000)+'秒）':': '+String(e.message||e).slice(0,100)));return null}
+  finally{clearTimeout(timer)}
+ }
+ // Prioritize the fast text-only provider, then the two existing free fallbacks.
+ if(env.GROQ_API_KEY){
+  const result=await limited('Groq','https://api.groq.com/openai/v1/chat/completions',{
+   method:'POST',headers:{Authorization:'Bearer '+env.GROQ_API_KEY,'Content-Type':'application/json'},
+   body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:prompt}],response_format:{type:'json_object'},temperature:0.2,max_tokens:4200})
+  },d=>d.choices?.[0]?.message?.content);
+  if(result)return result;
+ }
+ if(env.GEMINI_API_KEY){
+  const result=await limited('Gemini','https://generativelanguage.googleapis.com/v1beta/models/'+MODEL+':generateContent',{
+   method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':env.GEMINI_API_KEY},
+   body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{responseMimeType:'application/json',temperature:0.2,maxOutputTokens:6000}})
+  },d=>(d.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join(''));
+  if(result)return result;
+ }
+ if(env.OPENROUTER_API_KEY){
+  const result=await limited('OpenRouter','https://openrouter.ai/api/v1/chat/completions',{
+   method:'POST',headers:{Authorization:'Bearer '+env.OPENROUTER_API_KEY,'Content-Type':'application/json','HTTP-Referer':'https://15641288268.github.io/Roam-/','X-Title':'Roam Travel Planner'},
+   body:JSON.stringify({model:'openrouter/free',messages:[{role:'user',content:prompt}],temperature:0.2,max_tokens:4200})
+  },d=>d.choices?.[0]?.message?.content);
+  if(result)return result;
+ }
+ return {error:'AI 服务均未成功（每个服务最多等待约12秒）：'+errors.join('；'),status:503};
 }
 
 export default {
