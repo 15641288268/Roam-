@@ -48,7 +48,7 @@ async function textAssistantV68(payload,env){
  if(env.OPENROUTER_API_KEY){
   const result=await limited('OpenRouter','https://openrouter.ai/api/v1/chat/completions',{
    method:'POST',headers:{Authorization:'Bearer '+env.OPENROUTER_API_KEY,'Content-Type':'application/json','HTTP-Referer':'https://15641288268.github.io/Roam-/','X-Title':'Roam Travel Planner'},
-   body:JSON.stringify({model:'openrouter/free',messages:[{role:'user',content:prompt}],temperature:0.2,max_tokens:4200})
+   body:JSON.stringify({model:'openrouter/free',messages:[{role:'user',content:prompt}],response_format:{type:'json_object'},temperature:0.2,max_tokens:6500})
   },d=>d.choices?.[0]?.message?.content);
   if(result)return result;
  }
