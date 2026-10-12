@@ -324,7 +324,7 @@ let db;try{const saved=localStorage.getItem(KEY);db=saved?{...blank(),...JSON.pa
 const PROJECT_KEY='roam_projects_v1',ACTIVE_PROJECT_KEY='roam_active_project_v1';
 function loadProjects(){try{const p=JSON.parse(localStorage.getItem(PROJECT_KEY)||'null');if(p&&Array.isArray(p.items)&&p.items.length)return p}catch(e){}return {items:[{id:'trip-original',name:db.destination||'我的第一段旅行',data:structuredClone(db)}],active:'trip-original'}}
 let roamProjects=loadProjects();
-function syncProject(){const p=roamProjects.items.find(x=>x.id===roamProjects.active);if(p){p.data=JSON.parse(JSON.stringify(db));p.name=db.destination||p.name}localStorage.setItem(PROJECT_KEY,JSON.stringify(roamProjects))}
+function syncProject(){const p=roamProjects.items.find(x=>x.id===roamProjects.active);if(p){p.data=JSON.parse(JSON.stringify(db));if(!p.name)p.name=db.destination||'未命名旅行'}localStorage.setItem(PROJECT_KEY,JSON.stringify(roamProjects))}
 function chooseProject(id){if(id===roamProjects.active)return;syncProject();const p=roamProjects.items.find(x=>x.id===id);if(!p)return;roamProjects.active=id;db={...blank(),...JSON.parse(JSON.stringify(p.data))};selectedPlanDay=1;localStorage.setItem(ACTIVE_PROJECT_KEY,id);localStorage.setItem(KEY,JSON.stringify(db));syncProject();render();window.scrollTo({top:0,behavior:'smooth'})}
 function createProject(){const name=prompt('新旅行名称（例如：意大利秋日之旅）');if(!name||!name.trim())return;syncProject();const id='trip-'+Date.now();roamProjects.items.push({id,name:name.trim(),data:{...blank(),destination:name.trim()}});chooseProject(id)}
 function renameProject(){const p=roamProjects.items.find(x=>x.id===roamProjects.active);if(!p)return;const n=prompt('修改旅行名称',p.name);if(!n||!n.trim())return;p.name=n.trim();db.destination=n.trim();persist()}
