@@ -1,6 +1,6 @@
 // Roam V24 - Gemini document understanding. Set GEMINI_API_KEY and ROAM_ACCESS_TOKEN as Worker runtime Secrets.
 const ORIGIN='https://15641288268.github.io';
-const MODEL='gemini-2.5-flash';
+const MODEL='gemini-3.8-flash';
 export default {
  async fetch(request,env){
   const headers={'Access-Control-Allow-Origin':ORIGIN,'Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, X-Roam-Token','Vary':'Origin','Content-Type':'application/json','Cache-Control':'no-store'};
