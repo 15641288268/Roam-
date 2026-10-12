@@ -9,17 +9,32 @@ function parseAIJSON(text){
 // Roam V24 - Gemini document understanding. Set GEMINI_API_KEY and ROAM_ACCESS_TOKEN as Worker runtime Secrets.
 const ORIGIN='https://15641288268.github.io';
 const MODEL='gemini-3.8-flash';
+
+async function textAssistantV68(payload,env){
+ const mode=String(payload.mode||'chat'),question=String(payload.prompt||'').slice(0,6000),context=JSON.stringify(payload.context||{}).slice(0,14000);
+ if(!question.trim())return {error:'请输入 AI 请求',status:400};
+ const schemas={plan:'{"summary":"说明","destination":"城市","days":[{"day":1,"places":[{"name":"真实景点名称","activity":"游玩活动","time":"09:00","type":"景点","minutes":90,"cost":0}]}]}',place:'{"answer":"景点建议、附近餐饮、游览时长及待核实信息"}',optimize:'{"answer":"优化建议，按天说明行程与交通安排"}',budget:'{"answer":"预算分析与省钱建议"}'};
+ const prompt='你是 Roam 旅行助手。仅用简体中文，不能虚构实时票价、营业时间、实时班次、预约网址。JSON 必须有效。'+(mode==='plan'?'主标题地点名必须是实际地图实体，活动另写activity。每天最多8个地点，最多14天。':'')+'按照 JSON 格式返回：'+(schemas[mode]||'{"answer":"中文答复"}')+'\n旅行上下文：'+context+'\n用户要求：'+question;
+ const errors=[];
+ const accept=(t,provider)=>{const result=parseAIJSON(t);return result?{result,provider}:null};
+ if(env.GEMINI_API_KEY){try{const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+MODEL+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':env.GEMINI_API_KEY},body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{responseMimeType:'application/json',temperature:0.2,maxOutputTokens:8192}})});const d=await r.json();if(r.ok){const v=accept((d.candidates?.[0]?.content?.parts||[]).map(x=>x.text||'').join(''),'Gemini');if(v)return v}errors.push('Gemini '+(d.error?.message||r.status))}catch(e){errors.push(e.message)}}
+ if(env.OPENROUTER_API_KEY){try{const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{Authorization:'Bearer '+env.OPENROUTER_API_KEY,'Content-Type':'application/json'},body:JSON.stringify({model:'openrouter/free',messages:[{role:'user',content:prompt}],temperature:0.2,max_tokens:8192})});const d=await r.json();if(r.ok){const v=accept(d.choices?.[0]?.message?.content,'OpenRouter');if(v)return v}errors.push('OpenRouter '+(d.error?.message||r.status))}catch(e){errors.push(e.message)}}
+ if(env.GROQ_API_KEY){try{const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{Authorization:'Bearer '+env.GROQ_API_KEY,'Content-Type':'application/json'},body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:prompt}],response_format:{type:'json_object'},temperature:0.2,max_tokens:6000})});const d=await r.json();if(r.ok){const v=accept(d.choices?.[0]?.message?.content,'Groq');if(v)return v}errors.push('Groq '+(d.error?.message||r.status))}catch(e){errors.push(e.message)}}
+ return {error:'AI 服务暂不可用：'+errors.join('；'),status:503};
+}
+
 export default {
  async fetch(request,env){
   const headers={'Access-Control-Allow-Origin':ORIGIN,'Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, X-Roam-Token','Vary':'Origin','Content-Type':'application/json','Cache-Control':'no-store'};
   const reply=(body,status=200)=>new Response(JSON.stringify(body),{status,headers});
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
-  if(request.method!=='POST'||!['/analyze','/route-analyze'].includes(new URL(request.url).pathname))return reply({error:'Not found'},404);
+  if(request.method!=='POST'||!['/analyze','/route-analyze','/assistant'].includes(new URL(request.url).pathname))return reply({error:'Not found'},404);
   if(request.headers.get('Origin')!==ORIGIN)return reply({error:'Origin denied'},403);
   if((!env.GEMINI_API_KEY&&!env.OPENROUTER_API_KEY&&!env.GROQ_API_KEY)||!env.ROAM_ACCESS_TOKEN)return reply({error:'请在 Cloudflare Worker Runtime secrets 配置 GEMINI_API_KEY 和 ROAM_ACCESS_TOKEN'},503);
   if(request.headers.get('X-Roam-Token')!==env.ROAM_ACCESS_TOKEN)return reply({error:'访问口令错误'},401);
   if(Number(request.headers.get('content-length')||0)>55e6)return reply({error:'文件太大'},413);
   let payload;try{payload=await request.json()}catch{return reply({error:'Invalid JSON'},400)}
+  if(new URL(request.url).pathname==='/assistant'){const answer=await textAssistantV68(payload,env);return reply(answer,answer.status||200)}
   const isRoute=new URL(request.url).pathname==='/route-analyze';
   const {data,filename}=payload||{};
   const extractedText=String(payload?.extractedText||'').slice(0,18000);
