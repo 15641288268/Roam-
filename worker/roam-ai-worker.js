@@ -34,7 +34,7 @@ async function textAssistantV68(payload,env){
  if(env.GROQ_API_KEY){
   const result=await limited('Groq','https://api.groq.com/openai/v1/chat/completions',{
    method:'POST',headers:{Authorization:'Bearer '+env.GROQ_API_KEY,'Content-Type':'application/json'},
-   body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:prompt}],response_format:{type:'json_object'},temperature:0.2,max_tokens:4200})
+   body:JSON.stringify({model:'openai/gpt-oss-120b',messages:[{role:'user',content:prompt}],response_format:{type:'json_object'},temperature:0.2,max_tokens:4200})
   },d=>d.choices?.[0]?.message?.content);
   if(result)return result;
  }
