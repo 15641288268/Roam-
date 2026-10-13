@@ -1,4 +1,4 @@
-// V99: turn a Xiaohongshu guide into a separate, dated trip.
+// V100: turn a Xiaohongshu guide into a separate, dated trip.
 function guideURLV96(text) {
  const match=String(text||'').match(/https?:\/\/[^\s<>"'，。]+/i);
  if(!match)return '';
@@ -54,9 +54,10 @@ async function guideReadLinkV98(url,onStatus) {
    const payload=await response.json().catch(()=>({}));
    if(response.ok&&payload.source?.text)return guideContentV98(payload.source.text);
    backendIssue=(payload.error||'未返回正文')+'（HTTP '+response.status+'）';
+   if(['XHS_VERIFICATION_REQUIRED','XHS_LOGIN_REQUIRED'].includes(payload.code)){const err=Error(payload.error);err.blocked=true;throw err}
    if(response.status===401){const err=Error('AI 服务访问口令未保存或不正确，请到首页 AI 服务设置重新填写并保存。');err.config=true;throw err}
   }finally{clearTimeout(timer)}
- }catch(e){if(e.config)throw e;backendIssue=backendIssue||e.message}
+ }catch(e){if(e.config||e.blocked)throw e;backendIssue=backendIssue||e.message}
 
  const ua='Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1';
  let lastError;
@@ -79,11 +80,11 @@ function openGuideImportV96(){
  <label>小红书分享链接<textarea id="guideLinkV96" placeholder="可直接粘贴小红书的整段分享文字和链接"></textarea></label>
  <label>攻略截图（最多6张，按行程顺序选择）<input id="guideFilesV96" type="file" accept="image/*" multiple></label><div id="guideImagesV96" class="guide-images-v96"></div>
  <label>攻略正文 / 识别文字（可补充、修正）<textarea id="guideTextV96" maxlength="18000" placeholder="也可以复制攻略正文。链接无法读取时，请添加截图或正文。"></textarea></label>
- <button id="guideReadV96" class="secondary" type="button">读取链接 / 截图</button>
+ <div class="actions"><button id="guideReadV96" class="secondary" type="button">读取链接 / 截图</button><button id="guideOpenV100" class="secondary" type="button">打开小红书原笔记 ↗</button></div>
  <div class="grid"><label>出发日期<input id="guideStartV96" type="date" required></label><label>旅行总天数<input id="guideDaysV96" type="number" min="1" max="30" step="1" placeholder="从攻略自动识别，可修改"></label></div><label>结束日期（自动计算，含当天）<input id="guideEndV96" type="date" readonly aria-readonly="true"></label><p id="guideDatesHintV96" class="muted">填出发日期即可；“5天4晚”会自动识别为5天。无法识别时请填写总天数。</p>
  <label>新旅行名称（可选）<input id="guideNameV96" maxlength="80" placeholder="留空则由 AI 根据攻略命名"></label>
  <label>我的调整意见（可选）<textarea id="guideNeedsV96" maxlength="1500" placeholder="例如：轻松一些、JR优先、保留原攻略的全部主要景点"></textarea></label>
- <p class="muted">链接正文通过网页阅读服务提取；截图文字在浏览器中识别，再由已配置的 AI 服务规划。原攻略未核实的票价、预约及营业时间会注明待核实。</p>
+ <p class="muted">链接仅在小红书允许后台访问时可自动读取；遇到验证码或登录限制，请打开原笔记后上传截图或复制正文。原攻略未核实的票价、预约及营业时间会注明待核实。</p>
  <p id="guideStatusV96" role="status" aria-live="polite" style="white-space:pre-wrap;overflow-wrap:anywhere"></p><div id="guidePreviewV96" hidden></div>
  <div class="actions"><button id="guideCloseV96" type="button" class="secondary">关闭</button><button id="guideGenerateV96" type="button">AI 总结并生成行程</button><button id="guideSaveV96" type="button" hidden>保存为新旅行</button></div>`;
  document.body.appendChild(dialog);
@@ -92,6 +93,7 @@ function openGuideImportV96(){
  function invalidate(){draft=null;get('Save').hidden=true;get('Preview').hidden=true}
  function lock(value){busy=value;for(const id of ['Read','Generate','Save'])get(id).disabled=value;for(const el of dialog.querySelectorAll('input,textarea'))el.disabled=value;get('Close').disabled=value}
  const key=()=>JSON.stringify([get('Link').value,[...get('Files').files].map(f=>[f.name,f.size,f.lastModified])]);
+ dialog.querySelector('#guideOpenV100').onclick=()=>{try{const url=guideURLV96(get('Link').value);if(!url)return status('请先粘贴小红书分享链接');window.open(url,'_blank','noopener,noreferrer')}catch(e){status(e.message)}};
  get('Close').onclick=()=>dialog.close();dialog.addEventListener('cancel',e=>{if(busy)e.preventDefault()});
  dialog.addEventListener('close',()=>{thumbs.forEach(URL.revokeObjectURL);dialog.remove()},{once:true});
  for(const el of dialog.querySelectorAll('input,textarea'))el.addEventListener('input',invalidate);
