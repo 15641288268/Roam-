@@ -1,9 +1,9 @@
-// V96: turn a Xiaohongshu guide into a separate, dated trip.
+// V97: turn a Xiaohongshu guide into a separate, dated trip.
 function guideURLV96(text) {
  const match=String(text||'').match(/https?:\/\/[^\s<>"'，。]+/i);
  if(!match)return '';
  const url=new URL(match[0].replace(/[)）]+$/,''));
- if(url.protocol!=='https:'||!(/(^|\.)xiaohongshu\.com$|^xhslink\.com$/.test(url.hostname)))throw Error('请粘贴小红书或 xhslink.com 的 HTTPS 分享链接');
+ if(url.protocol!=='https:'||!(/(^|\.)xiaohongshu\.com$|^(?:www\.)?xhslink\.(?:com|cn)$/.test(url.hostname)))throw Error('请粘贴小红书、xhslink.cn 或 xhslink.com 的 HTTPS 分享链接');
  return url.href;
 }
 function guideDayV96(start,offset){return new Date(Date.parse(start+'T12:00:00Z')+offset*86400000).toISOString().slice(0,10)}
