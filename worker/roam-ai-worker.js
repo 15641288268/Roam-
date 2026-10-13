@@ -68,19 +68,60 @@ async function textAssistantV68(payload,env){
  return {error:'AI 服务均未成功（每个服务最多等待约12秒）：'+errors.join('；'),status:503};
 }
 
+
+const GUIDE_UA_V98='Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1';
+function guideAllowedURLV98(value){
+ const u=new URL(value);
+ if(u.protocol!=='https:'||u.username||u.password||!(/(^|\.)xiaohongshu\.com$|^(?:www\.)?xhslink\.(?:cn|com)$/.test(u.hostname)))throw Error('只支持小红书 HTTPS 分享链接');
+ return u;
+}
+function guideHTMLTextV98(html){
+ const tags=[...html.matchAll(/<div\b[^>]*>/gi)];
+ const tag=tags.find(m=>{const cl=m[0].match(/class=["']([^"']+)["']/i)?.[1]||'';return cl.split(/\s+/).some(c=>['author-desc','author-desc-content','note-desc'].includes(c))||/id=["']detail-desc["']/i.test(m[0])});
+ if(!tag)throw Error('未取得笔记正文，可能需要在小红书中打开；请补充截图或正文');
+ const offset=tag.index+tag[0].length;let end=offset,depth=1;const re=/<\/?div\b[^>]*>/gi;re.lastIndex=offset;let m;
+ while((m=re.exec(html))){depth+=/^<\//.test(m[0])?-1:1;if(!depth){end=m.index;break}}
+ if(depth)throw Error('笔记正文结构不完整，请重试');
+ const text=html.slice(offset,end).replace(/<br\b[^>]*>/gi,'\n').replace(/<[^>]+>/g,'').replace(/&#(x[0-9a-f]+|\d+);/gi,(_,v)=>String.fromCodePoint(v[0].toLowerCase()==='x'?parseInt(v.slice(1),16):Number(v))).replace(/&(amp|lt|gt|quot|apos|nbsp);/g,(_,v)=>({amp:'&',lt:'<',gt:'>',quot:'"',apos:"'",nbsp:' '})[v]).trim();
+ if(text.length<100)throw Error('笔记正文不足，请上传攻略截图');
+ return text.slice(0,18000);
+}
+async function readGuideV98(payload){
+ try{
+  let url=guideAllowedURLV98(String(payload?.url||''));const original=url.href;
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),23000);
+  try{
+   for(let n=0;n<6;n++){
+    const r=await fetch(url.href,{redirect:'manual',headers:{'User-Agent':GUIDE_UA_V98,Accept:'text/html,application/xhtml+xml'},signal:controller.signal});
+    if([301,302,303,307,308].includes(r.status)){
+     const location=r.headers.get('Location');if(!location)throw Error('分享链接没有跳转地址');
+     url=guideAllowedURLV98(new URL(location,url).href);
+     if(/\/login(?:[/?]|$)/i.test(url.pathname))throw Error('小红书要求登录，自动读取未取得正文；请上传截图或粘贴正文');
+     continue;
+    }
+    if(!r.ok)throw Error('小红书网页 HTTP '+r.status);
+    const html=await r.text();if(html.length>2e6)throw Error('笔记页面过大');
+    const text=guideHTMLTextV98(html);return {source:{url:original,text},provider:'小红书手机网页'};
+   }
+   throw Error('分享链接跳转过多');
+  }finally{clearTimeout(timer)}
+ }catch(e){return {error:e.name==='AbortError'?'读取小红书网页超时':e.message,status:422}}
+}
+
 export default {
  async fetch(request,env){
   const headers={'Access-Control-Allow-Origin':ORIGIN,'Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, X-Roam-Token','Vary':'Origin','Content-Type':'application/json','Cache-Control':'no-store'};
   const reply=(body,status=200)=>new Response(JSON.stringify(body),{status,headers});
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
-  if(request.method!=='POST'||!['/analyze','/route-analyze','/assistant'].includes(new URL(request.url).pathname))return reply({error:'Not found'},404);
+  if(request.method!=='POST'||!['/analyze','/route-analyze','/assistant','/guide-read'].includes(new URL(request.url).pathname))return reply({error:'Not found'},404);
   if(request.headers.get('Origin')!==ORIGIN)return reply({error:'Origin denied'},403);
   if(!env.ROAM_ACCESS_TOKEN)return reply({error:'请在 Cloudflare Worker Runtime secrets 配置 ROAM_ACCESS_TOKEN'},503);
   const path=new URL(request.url).pathname;
-  if(!env.GEMINI_API_KEY&&!env.OPENROUTER_API_KEY&&!env.GROQ_API_KEY&&!(path==='/assistant'&&env.AI))return reply({error:path==='/assistant'?'请配置 Groq、Gemini、OpenRouter 任一密钥，或添加 Cloudflare Workers AI 绑定（名称 AI）':'截图与凭证识别需要 GEMINI_API_KEY、OPENROUTER_API_KEY 或 GROQ_API_KEY'},503);
+  if(path!=='/guide-read'&&!env.GEMINI_API_KEY&&!env.OPENROUTER_API_KEY&&!env.GROQ_API_KEY&&!(path==='/assistant'&&env.AI))return reply({error:path==='/assistant'?'请配置 Groq、Gemini、OpenRouter 任一密钥，或添加 Cloudflare Workers AI 绑定（名称 AI）':'截图与凭证识别需要 GEMINI_API_KEY、OPENROUTER_API_KEY 或 GROQ_API_KEY'},503);
   if(request.headers.get('X-Roam-Token')!==env.ROAM_ACCESS_TOKEN)return reply({error:'访问口令错误'},401);
   if(Number(request.headers.get('content-length')||0)>55e6)return reply({error:'文件太大'},413);
   let payload;try{payload=await request.json()}catch{return reply({error:'Invalid JSON'},400)}
+  if(path==='/guide-read'){const source=await readGuideV98(payload);return reply(source,source.status||200)}
   if(new URL(request.url).pathname==='/assistant'){const answer=await textAssistantV68(payload,env);return reply(answer,answer.status||200)}
   const isRoute=new URL(request.url).pathname==='/route-analyze';
   const {data,filename}=payload||{};
