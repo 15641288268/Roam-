@@ -75,9 +75,30 @@ function guideAllowedURLV98(value){
  if(u.protocol!=='https:'||u.username||u.password||!(/(^|\.)xiaohongshu\.com$|^(?:www\.)?xhslink\.(?:cn|com)$/.test(u.hostname)))throw Error('只支持小红书 HTTPS 分享链接');
  return u;
 }
-function guideHTMLTextV98(html){
+
+function guideStructuredTextV99(html,expectedId){
+ // Parse JSON string fields only; never execute scripts from the remote page.
+ const keys=['"noteData":','"noteDetailMap":'];
+ for(const key of keys){
+  const pos=html.indexOf(key);if(pos<0)continue;
+  let region=html.slice(pos,pos+80000);
+  if(expectedId){const idPos=region.indexOf(expectedId);if(idPos<0)continue;region=region.slice(Math.max(0,idPos-100),idPos+75000)}
+  const desc=region.match(/"desc"\s*:\s*("(?:\\.|[^"\\])*")/);
+  if(!desc)continue;
+  try{
+   const text=JSON.parse(desc[1]);if(typeof text!=='string'||text.length<100)continue;
+   if(!/攻略|路线|行程|Day\s*[1-9]|第\s*[一二三四五六七八九十\d]+\s*天/i.test(text))continue;
+   const title=region.slice(0,desc.index).match(/"title"\s*:\s*("(?:\\.|[^"\\])*")/);
+   return (title?JSON.parse(title[1])+'\n\n':'')+text;
+  }catch(e){}
+ }
+ return '';
+}
+
+function guideHTMLTextV98(html,expectedId){
+ const structured=guideStructuredTextV99(html,expectedId);if(structured)return structured.slice(0,18000);
  const tags=[...html.matchAll(/<div\b[^>]*>/gi)];
- const tag=tags.find(m=>{const cl=m[0].match(/class=["']([^"']+)["']/i)?.[1]||'';return cl.split(/\s+/).some(c=>['author-desc','author-desc-content','note-desc'].includes(c))||/id=["']detail-desc["']/i.test(m[0])});
+ const tag=tags.find(m=>{const cl=m[0].match(/class=["']([^"']+)["']/i)?.[1]||'';return cl.split(/\s+/).some(c=>['author-desc','author-desc-content','note-desc','desc'].includes(c))||/id=["']detail-desc["']/i.test(m[0])});
  if(!tag)throw Error('未取得笔记正文，可能需要在小红书中打开；请补充截图或正文');
  const offset=tag.index+tag[0].length;let end=offset,depth=1;const re=/<\/?div\b[^>]*>/gi;re.lastIndex=offset;let m;
  while((m=re.exec(html))){depth+=/^<\//.test(m[0])?-1:1;if(!depth){end=m.index;break}}
@@ -92,7 +113,7 @@ async function readGuideV98(payload){
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),23000);
   try{
    for(let n=0;n<6;n++){
-    const r=await fetch(url.href,{redirect:'manual',headers:{'User-Agent':GUIDE_UA_V98,Accept:'text/html,application/xhtml+xml'},signal:controller.signal});
+    const r=await fetch(url.href,{redirect:'manual',headers:{'User-Agent':GUIDE_UA_V98,Accept:'text/html,application/xhtml+xml','Accept-Language':'zh-CN,zh;q=0.9','Sec-CH-UA-Mobile':'?1'},signal:controller.signal});
     if([301,302,303,307,308].includes(r.status)){
      const location=r.headers.get('Location');if(!location)throw Error('分享链接没有跳转地址');
      url=guideAllowedURLV98(new URL(location,url).href);
@@ -101,11 +122,12 @@ async function readGuideV98(payload){
     }
     if(!r.ok)throw Error('小红书网页 HTTP '+r.status);
     const html=await r.text();if(html.length>2e6)throw Error('笔记页面过大');
-    const text=guideHTMLTextV98(html);return {source:{url:original,text},provider:'小红书手机网页'};
+    const noteId=url.pathname.match(/\/(?:item|explore)\/([a-f0-9]{24})/i)?.[1];
+    const text=guideHTMLTextV98(html,noteId);return {source:{url:original,text},provider:'小红书手机网页',version:'V99'};
    }
    throw Error('分享链接跳转过多');
   }finally{clearTimeout(timer)}
- }catch(e){return {error:e.name==='AbortError'?'读取小红书网页超时':e.message,status:422}}
+ }catch(e){return {error:e.name==='AbortError'?'读取小红书网页超时':e.message,status:422,version:'V99'}}
 }
 
 export default {
