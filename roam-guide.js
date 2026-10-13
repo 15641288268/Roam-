@@ -1,11 +1,4 @@
-// V100: turn a Xiaohongshu guide into a separate, dated trip.
-function guideURLV96(text) {
- const match=String(text||'').match(/https?:\/\/[^\s<>"'，。]+/i);
- if(!match)return '';
- const url=new URL(match[0].replace(/[)）]+$/,''));
- if(url.protocol!=='https:'||!(/(^|\.)xiaohongshu\.com$|^(?:www\.)?xhslink\.(?:com|cn)$/.test(url.hostname)))throw Error('请粘贴小红书、xhslink.cn 或 xhslink.com 的 HTTPS 分享链接');
- return url.href;
-}
+// V101: turn a Xiaohongshu guide into a separate, dated trip.
 function guideDayV96(start,offset){return new Date(Date.parse(start+'T12:00:00Z')+offset*86400000).toISOString().slice(0,10)}
 function guideValidateV96(plan,count){
  if(!Array.isArray(plan?.days)||plan.days.length!==count)throw Error('AI 返回的天数与指定日期不一致，请重试');
@@ -29,62 +22,16 @@ function guideDatesV98(start,days) {
 }
 
 
-function guideContentV98(raw) {
- let text=String(raw||'');
- if(/<html|<!doctype|<body/i.test(text)){
-  const doc=new DOMParser().parseFromString(text,'text/html');
-  doc.querySelectorAll('script,style,noscript,nav,header,footer').forEach(el=>el.remove());
-  const article=doc.querySelector('.author-desc,.author-desc-content,#detail-desc,.note-desc');
-  text=(article||doc.body).textContent||'';
- }else text=text.split('Markdown Content:').pop();
- text=text.trim();
- if(text.length<100||/访问频繁|安全验证|验证码|笔记不存在|内容已删除|你访问的页面不见了|页面不存在|笔记已失效|登录后查看|page not found|access denied|captcha|Sign in to continue|502 Bad Gateway/i.test(text)||!(/攻略|路线|行程|景点|游玩|Day\s*[1-9]|第\s*[一二三四五六七八九十\d]+\s*天/i.test(text)))throw Error('未取得攻略正文，可能需要在小红书中打开；这不代表分享链接已失效');
- return text;
-}
-async function guideReadLinkV98(url,onStatus) {
-
- let backendIssue='';
- // Prefer the existing Roam backend: it can follow the mobile share redirect directly.
- try{
-  const {endpoint,token}=roamAIConfigV68();
-  onStatus('正在通过旅行服务读取小红书笔记正文…');
-  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),26000);
-  try{
-   const response=await fetch(endpoint+'/guide-read',{method:'POST',headers:{'Content-Type':'application/json','X-Roam-Token':token},body:JSON.stringify({url}),signal:controller.signal});
-   const payload=await response.json().catch(()=>({}));
-   if(response.ok&&payload.source?.text)return guideContentV98(payload.source.text);
-   backendIssue=(payload.error||'未返回正文')+'（HTTP '+response.status+'）';
-   if(['XHS_VERIFICATION_REQUIRED','XHS_LOGIN_REQUIRED'].includes(payload.code)){const err=Error(payload.error);err.blocked=true;throw err}
-   if(response.status===401){const err=Error('AI 服务访问口令未保存或不正确，请到首页 AI 服务设置重新填写并保存。');err.config=true;throw err}
-  }finally{clearTimeout(timer)}
- }catch(e){if(e.config||e.blocked)throw e;backendIssue=backendIssue||e.message}
-
- const ua='Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1';
- let lastError;
- const modes=[{'X-Engine':'direct','X-Return-Format':'html'},{'X-Return-Format':'markdown'}];
- for(let i=0;i<modes.length;i++){
-  onStatus(i?'正在重试手机网页读取…':'正在打开小红书短链接并读取手机网页正文…');
-  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),25000);
-  try{
-   const response=await fetch('https://r.jina.ai/'+url,{headers:{'X-No-Cache':'true','X-User-Agent':ua,...modes[i]},signal:controller.signal});
-   if(!response.ok)throw Error('网页阅读服务 HTTP '+response.status);
-   return guideContentV98(await response.text());
-  }catch(e){lastError=e.name==='AbortError'?Error('网页读取超时'):e}finally{clearTimeout(timer)}
- }
- throw Error((backendIssue?'旅行服务：'+backendIssue+'；':'')+'备用阅读：'+(lastError?.message||'未取得攻略正文'));
-}
-
 function openGuideImportV96(){
  const dialog=document.createElement('dialog');dialog.className='ai-import-dialog-v73 guide-dialog-v96';
- dialog.innerHTML=`<h3>小红书攻略 → 新旅行</h3><p class="muted">粘贴分享链接或上传攻略截图，AI 总结后按你的日期安排每日行程。</p>
- <label>小红书分享链接<textarea id="guideLinkV96" placeholder="可直接粘贴小红书的整段分享文字和链接"></textarea></label>
+ dialog.innerHTML=`<h3>小红书攻略 → 新旅行</h3><p class="muted">上传攻略截图或粘贴完整正文，AI 总结后按你的日期安排每日行程。</p>
  <label>攻略截图（最多6张，按行程顺序选择）<input id="guideFilesV96" type="file" accept="image/*" multiple></label><div id="guideImagesV96" class="guide-images-v96"></div>
- <label>攻略正文 / 识别文字（可补充、修正）<textarea id="guideTextV96" maxlength="18000" placeholder="也可以复制攻略正文。链接无法读取时，请添加截图或正文。"></textarea></label>
- <div class="actions"><button id="guideReadV96" class="secondary" type="button">读取链接 / 截图</button><button id="guideOpenV100" class="secondary" type="button">打开小红书原笔记 ↗</button></div>
+ <label>攻略正文 / 识别文字（可补充、修正）<textarea id="guideTextV96" maxlength="18000" placeholder="直接粘贴攻略正文，或先上传截图并识别文字。"></textarea></label>
+ <button id="guideReadV96" class="secondary" type="button">识别截图文字</button>
  <div class="grid"><label>出发日期<input id="guideStartV96" type="date" required></label><label>旅行总天数<input id="guideDaysV96" type="number" min="1" max="30" step="1" placeholder="从攻略自动识别，可修改"></label></div><label>结束日期（自动计算，含当天）<input id="guideEndV96" type="date" readonly aria-readonly="true"></label><p id="guideDatesHintV96" class="muted">填出发日期即可；“5天4晚”会自动识别为5天。无法识别时请填写总天数。</p>
  <label>新旅行名称（可选）<input id="guideNameV96" maxlength="80" placeholder="留空则由 AI 根据攻略命名"></label>
  <label>我的调整意见（可选）<textarea id="guideNeedsV96" maxlength="1500" placeholder="例如：轻松一些、JR优先、保留原攻略的全部主要景点"></textarea></label>
- <p class="muted">链接仅在小红书允许后台访问时可自动读取；遇到验证码或登录限制，请打开原笔记后上传截图或复制正文。原攻略未核实的票价、预约及营业时间会注明待核实。</p>
+ <p class="muted">截图识别后可核对和修正文字，也可以直接粘贴攻略正文生成行程。原攻略未核实的票价、预约及营业时间会注明待核实。</p>
  <p id="guideStatusV96" role="status" aria-live="polite" style="white-space:pre-wrap;overflow-wrap:anywhere"></p><div id="guidePreviewV96" hidden></div>
  <div class="actions"><button id="guideCloseV96" type="button" class="secondary">关闭</button><button id="guideGenerateV96" type="button">AI 总结并生成行程</button><button id="guideSaveV96" type="button" hidden>保存为新旅行</button></div>`;
  document.body.appendChild(dialog);
@@ -92,34 +39,31 @@ function openGuideImportV96(){
  const status=text=>{get('Status').textContent=text};
  function invalidate(){draft=null;get('Save').hidden=true;get('Preview').hidden=true}
  function lock(value){busy=value;for(const id of ['Read','Generate','Save'])get(id).disabled=value;for(const el of dialog.querySelectorAll('input,textarea'))el.disabled=value;get('Close').disabled=value}
- const key=()=>JSON.stringify([get('Link').value,[...get('Files').files].map(f=>[f.name,f.size,f.lastModified])]);
- dialog.querySelector('#guideOpenV100').onclick=()=>{try{const url=guideURLV96(get('Link').value);if(!url)return status('请先粘贴小红书分享链接');window.open(url,'_blank','noopener,noreferrer')}catch(e){status(e.message)}};
+ const key=()=>JSON.stringify([...get('Files').files].map(f=>[f.name,f.size,f.lastModified]));
  get('Close').onclick=()=>dialog.close();dialog.addEventListener('cancel',e=>{if(busy)e.preventDefault()});
  dialog.addEventListener('close',()=>{thumbs.forEach(URL.revokeObjectURL);dialog.remove()},{once:true});
  for(const el of dialog.querySelectorAll('input,textarea'))el.addEventListener('input',invalidate);
  
  function updateDates() {
-  if(!manualDays){const n=guideDurationV98(get('Link').value)||guideDurationV98(get('Text').value);get('Days').value=n||''}
+  if(!manualDays){const n=guideDurationV98(get('Text').value);get('Days').value=n||''}
   const dates=guideDatesV98(get('Start').value,get('Days').value);get('End').value=dates?.end||'';
   get('DatesHint').textContent=dates?'共 '+dates.days+' 天 · '+dates.start+' 至 '+dates.end+'（包含出发当天）':'请选择出发日期；总天数会从攻略识别，也可手动填写1–30天。';
  }
- for(const id of ['Link','Text','Start'])get(id).addEventListener('input',updateDates);
+ for(const id of ['Text','Start'])get(id).addEventListener('input',updateDates);
  get('Days').addEventListener('input',()=>{manualDays=!!get('Days').value;updateDates()});
 
  get('Files').onchange=()=>{thumbs.forEach(URL.revokeObjectURL);thumbs=[];get('Images').replaceChildren();for(const file of [...get('Files').files].slice(0,6)){const img=document.createElement('img');img.src=URL.createObjectURL(file);thumbs.push(img.src);img.alt=file.name;get('Images').appendChild(img)}};
  async function readSources(){
   const files=[...get('Files').files];if(files.length>6)throw Error('一次最多选择6张截图');if(files.some(f=>!f.type.startsWith('image/')||f.size>15*1024*1024))throw Error('请上传单张小于15MB的图片');
-  const url=guideURLV96(get('Link').value);if(get('Link').value.trim()&&!url)throw Error('分享文字中没有找到小红书链接');
-  const pieces=[],warnings=[];
-  if(url){try{const text=await guideReadLinkV98(url,status);pieces.push('【小红书链接正文】\n'+text.slice(0,10000))}catch(e){warnings.push('链接暂未取得正文，请补充截图或正文（'+e.message+'）')}}
+  if(!files.length)throw Error('请先选择攻略截图；已有正文可以直接点击 AI 总结并生成行程');
+  const pieces=[];
   if(files.length){
    if(!window.Tesseract)await externalScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');
    const worker=await Tesseract.createWorker('chi_sim+eng');
    try{for(let i=0;i<files.length;i++){status('正在识别截图 '+(i+1)+' / '+files.length+'，首次加载可能较慢…');const result=await worker.recognize(files[i]);if(result.data.text.trim())pieces.push('【截图 '+(i+1)+'】\n'+result.data.text.trim())}}finally{await worker.terminate()}
   }
   if(pieces.length)get('Text').value=[get('Text').value.trim(),...pieces].filter(Boolean).join('\n\n').slice(0,18000);
-  readKey=key();updateDates();status(warnings.length?warnings.join('；'):'攻略文字已提取，可以修正后生成行程');
-  return warnings;
+  readKey=key();updateDates();status('截图文字已提取，可以修正后生成行程');
  }
  get('Read').onclick=async()=>{if(busy)return;invalidate();lock(true);try{await readSources()}catch(e){status('读取失败：'+e.message)}finally{lock(false)}};
  get('Generate').onclick=async()=>{
@@ -127,10 +71,10 @@ function openGuideImportV96(){
   try{roamAIConfigV68()}catch(e){status(e.message);return}
   invalidate();lock(true);
   try{
-   let readWarnings=[];if((get('Link').value.trim()||get('Files').files.length)&&readKey!==key())readWarnings=await readSources();
+   if(get('Files').files.length&&readKey!==key())await readSources();
    updateDates();const dates=guideDatesV98(get('Start').value,get('Days').value);if(!dates)throw Error('未能识别总天数，请填写1–30天；结束日期会自动计算');
-   const source=get('Text').value.trim();if(source.length<60)throw Error(readWarnings.length?readWarnings.join('；'):'攻略正文不足。请添加清晰截图或复制正文，不能只凭链接标题规划');
-   const sourceURL=guideURLV96(get('Link').value),needs=get('Needs').value.trim(),days=[];let destination='',summary='',provider='';
+   const source=get('Text').value.trim();if(source.length<60)throw Error('攻略正文不足。请添加清晰截图或复制完整正文');
+   const needs=get('Needs').value.trim(),days=[];let destination='',summary='',provider='';
    const sourceChunks=[];
    for(let i=0;i<source.length;i+=5500){
     status('AI 正在提取攻略要点 '+(Math.floor(i/5500)+1)+' / '+Math.ceil(source.length/5500)+'…');
@@ -148,14 +92,14 @@ function openGuideImportV96(){
     else if(String(plan.destination||'').trim()!==destination)throw Error('AI 在规划中改变了目的地，请补充明确城市后重试');
     days.push(...plan.days.map((d,i)=>({...d,day:offset+i+1})));provider=result.provider;
    }
-   draft={destination,summary:sourceSummary+'\n\n行程安排：'+summary,days,start:dates.start,end:dates.end,name:get('Name').value.trim()||destination+' · 小红书攻略',sourceURL,sourceText:source,provider};
+   draft={destination,summary:sourceSummary+'\n\n行程安排：'+summary,days,start:dates.start,end:dates.end,name:get('Name').value.trim()||destination+' · 小红书攻略',sourceText:source,provider};
    get('Preview').hidden=false;get('Preview').innerHTML='<h3>'+esc(draft.name)+'</h3><p style="white-space:pre-wrap">'+esc(draft.summary)+'</p><p class="muted">'+dates.start+' 至 '+dates.end+' · '+dates.days+'天 · '+esc(provider)+' · 时间为建议，费用待核实</p>'+days.map(d=>'<details open><summary>第'+d.day+'天 · '+guideDayV96(dates.start,d.day-1)+'</summary>'+d.places.map(p=>'<p><strong>'+esc(p.time)+' '+esc(p.name)+'</strong><br>'+esc(p.activity)+'</p>').join('')+'</details>').join('');
    get('Save').hidden=false;status('新行程已生成。核对后点击“保存为新旅行”，原有旅行不会改变。');
   }catch(e){status('生成失败：'+e.message)}finally{lock(false)}
  };
  get('Save').onclick=()=>{
   if(!draft||busy)return;const dates=tripDatesV77(draft.start,draft.end);if(!dates||dates.days!==draft.days.length)return status('日期或草稿不一致，请重新生成');
-  const data={...blank(),destination:draft.destination,start:draft.start,days:dates.days,currency:'CNY',guideSource:{platform:'小红书',url:draft.sourceURL,text:draft.sourceText,summary:draft.summary,provider:draft.provider,createdAt:new Date().toISOString()}};
+  const data={...blank(),destination:draft.destination,start:draft.start,days:dates.days,currency:'CNY',guideSource:{platform:'小红书',text:draft.sourceText,summary:draft.summary,provider:draft.provider,createdAt:new Date().toISOString()}};
   data.places=draft.days.flatMap(d=>d.places.map(p=>({id:uid(),day:d.day,time:p.time,name:p.name,type:p.type,note:p.activity,cost:0,currency:'CNY'})));
   syncProject();const id='trip-'+uid();roamProjects.items.push({id,name:draft.name,data});chooseProject(id);dialog.close();show('plan');
  };
