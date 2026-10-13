@@ -69,82 +69,19 @@ async function textAssistantV68(payload,env){
 }
 
 
-const GUIDE_UA_V98='Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1';
-function guideAllowedURLV98(value){
- const u=new URL(value);
- if(u.protocol!=='https:'||u.username||u.password||!(/(^|\.)xiaohongshu\.com$|^(?:www\.)?xhslink\.(?:cn|com)$/.test(u.hostname)))throw Error('只支持小红书 HTTPS 分享链接');
- return u;
-}
-
-function guideStructuredTextV100(html,expectedId){
- // Parse JSON string fields only; never execute scripts from the remote page.
- const keys=['"noteData":','"noteDetailMap":'];
- for(const key of keys){
-  const pos=html.indexOf(key);if(pos<0)continue;
-  let region=html.slice(pos,pos+80000);
-  if(expectedId){const idPos=region.indexOf(expectedId);if(idPos<0)continue;region=region.slice(Math.max(0,idPos-100),idPos+75000)}
-  const desc=region.match(/"desc"\s*:\s*("(?:\\.|[^"\\])*")/);
-  if(!desc)continue;
-  try{
-   const text=JSON.parse(desc[1]);if(typeof text!=='string'||text.length<100)continue;
-   if(!/攻略|路线|行程|Day\s*[1-9]|第\s*[一二三四五六七八九十\d]+\s*天/i.test(text))continue;
-   const title=region.slice(0,desc.index).match(/"title"\s*:\s*("(?:\\.|[^"\\])*")/);
-   return (title?JSON.parse(title[1])+'\n\n':'')+text;
-  }catch(e){}
- }
- return '';
-}
-
-function guideHTMLTextV98(html,expectedId){
- const structured=guideStructuredTextV100(html,expectedId);if(structured)return structured.slice(0,18000);
- const tags=[...html.matchAll(/<div\b[^>]*>/gi)];
- const tag=tags.find(m=>{const cl=m[0].match(/class=["']([^"']+)["']/i)?.[1]||'';return cl.split(/\s+/).some(c=>['author-desc','author-desc-content','note-desc','desc'].includes(c))||/id=["']detail-desc["']/i.test(m[0])});
- if(!tag)throw Error('未取得笔记正文，可能需要在小红书中打开；请补充截图或正文');
- const offset=tag.index+tag[0].length;let end=offset,depth=1;const re=/<\/?div\b[^>]*>/gi;re.lastIndex=offset;let m;
- while((m=re.exec(html))){depth+=/^<\//.test(m[0])?-1:1;if(!depth){end=m.index;break}}
- if(depth)throw Error('笔记正文结构不完整，请重试');
- const text=html.slice(offset,end).replace(/<br\b[^>]*>/gi,'\n').replace(/<[^>]+>/g,'').replace(/&#(x[0-9a-f]+|\d+);/gi,(_,v)=>String.fromCodePoint(v[0].toLowerCase()==='x'?parseInt(v.slice(1),16):Number(v))).replace(/&(amp|lt|gt|quot|apos|nbsp);/g,(_,v)=>({amp:'&',lt:'<',gt:'>',quot:'"',apos:"'",nbsp:' '})[v]).trim();
- if(text.length<100)throw Error('笔记正文不足，请上传攻略截图');
- return text.slice(0,18000);
-}
-async function readGuideV98(payload){
- try{
-  let url=guideAllowedURLV98(String(payload?.url||''));const original=url.href;
-  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),23000);
-  try{
-   for(let n=0;n<6;n++){
-    const r=await fetch(url.href,{redirect:'manual',headers:{'User-Agent':GUIDE_UA_V98,Accept:'text/html,application/xhtml+xml','Accept-Language':'zh-CN,zh;q=0.9','Sec-CH-UA-Mobile':'?1'},signal:controller.signal});
-    if([301,302,303,307,308].includes(r.status)){
-     const location=r.headers.get('Location');if(!location)throw Error('分享链接没有跳转地址');
-     url=guideAllowedURLV98(new URL(location,url).href);
-     if(/\/(?:website-login\/captcha|captcha|verify)(?:[/?]|$)/i.test(url.pathname)){const e=Error('小红书对后台读取要求验证码，未能取得攻略正文。请打开原笔记后上传截图或复制正文。');e.code='XHS_VERIFICATION_REQUIRED';throw e}
-     if(/\/login(?:[/?]|$)/i.test(url.pathname)){const e=Error('小红书要求登录，后台未取得攻略正文。请打开原笔记后上传截图或复制正文。');e.code='XHS_LOGIN_REQUIRED';throw e}
-     continue;
-    }
-    if(!r.ok)throw Error('小红书网页 HTTP '+r.status);
-    const html=await r.text();if(html.length>2e6)throw Error('笔记页面过大');
-    const noteId=url.pathname.match(/\/(?:item|explore)\/([a-f0-9]{24})/i)?.[1];
-    const text=guideHTMLTextV98(html,noteId);return {source:{url:original,text},provider:'小红书手机网页',version:'V100'};
-   }
-   throw Error('分享链接跳转过多');
-  }finally{clearTimeout(timer)}
- }catch(e){return {error:e.name==='AbortError'?'读取小红书网页超时':e.message,status:422,code:e.code||'GUIDE_READ_FAILED',version:'V100'}}
-}
-
 export default {
  async fetch(request,env){
-  const headers={'Access-Control-Allow-Origin':ORIGIN,'Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, X-Roam-Token','Vary':'Origin','Content-Type':'application/json','Cache-Control':'no-store','X-Roam-Version':'V100','Access-Control-Expose-Headers':'X-Roam-Version'};
+  const headers={'Access-Control-Allow-Origin':ORIGIN,'Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, X-Roam-Token','Vary':'Origin','Content-Type':'application/json','Cache-Control':'no-store','X-Roam-Version':'V101','Access-Control-Expose-Headers':'X-Roam-Version'};
   const reply=(body,status=200)=>new Response(JSON.stringify(body),{status,headers});
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
-  if(request.method!=='POST'||!['/analyze','/route-analyze','/assistant','/guide-read'].includes(new URL(request.url).pathname))return reply({error:'Not found'},404);
+  if(request.method!=='POST'||!['/analyze','/route-analyze','/assistant'].includes(new URL(request.url).pathname))return reply({error:'Not found'},404);
   if(request.headers.get('Origin')!==ORIGIN)return reply({error:'Origin denied'},403);
   if(!env.ROAM_ACCESS_TOKEN)return reply({error:'请在 Cloudflare Worker Runtime secrets 配置 ROAM_ACCESS_TOKEN'},503);
   const path=new URL(request.url).pathname;
-  if(path!=='/guide-read'&&!env.GEMINI_API_KEY&&!env.OPENROUTER_API_KEY&&!env.GROQ_API_KEY&&!(path==='/assistant'&&env.AI))return reply({error:path==='/assistant'?'请配置 Groq、Gemini、OpenRouter 任一密钥，或添加 Cloudflare Workers AI 绑定（名称 AI）':'截图与凭证识别需要 GEMINI_API_KEY、OPENROUTER_API_KEY 或 GROQ_API_KEY'},503);
+  if(!env.GEMINI_API_KEY&&!env.OPENROUTER_API_KEY&&!env.GROQ_API_KEY&&!(path==='/assistant'&&env.AI))return reply({error:path==='/assistant'?'请配置 Groq、Gemini、OpenRouter 任一密钥，或添加 Cloudflare Workers AI 绑定（名称 AI）':'截图与凭证识别需要 GEMINI_API_KEY、OPENROUTER_API_KEY 或 GROQ_API_KEY'},503);
   if(request.headers.get('X-Roam-Token')!==env.ROAM_ACCESS_TOKEN)return reply({error:'访问口令错误'},401);
   if(Number(request.headers.get('content-length')||0)>55e6)return reply({error:'文件太大'},413);
   let payload;try{payload=await request.json()}catch{return reply({error:'Invalid JSON'},400)}
-  if(path==='/guide-read'){const source=await readGuideV98(payload);return reply(source,source.status||200)}
   if(new URL(request.url).pathname==='/assistant'){const answer=await textAssistantV68(payload,env);return reply(answer,answer.status||200)}
   const isRoute=new URL(request.url).pathname==='/route-analyze';
   const {data,filename}=payload||{};
