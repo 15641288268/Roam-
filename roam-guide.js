@@ -1,4 +1,4 @@
-// V98: turn a Xiaohongshu guide into a separate, dated trip.
+// V99: turn a Xiaohongshu guide into a separate, dated trip.
 function guideURLV96(text) {
  const match=String(text||'').match(/https?:\/\/[^\s<>"'，。]+/i);
  if(!match)return '';
@@ -43,6 +43,7 @@ function guideContentV98(raw) {
 }
 async function guideReadLinkV98(url,onStatus) {
 
+ let backendIssue='';
  // Prefer the existing Roam backend: it can follow the mobile share redirect directly.
  try{
   const {endpoint,token}=roamAIConfigV68();
@@ -52,8 +53,10 @@ async function guideReadLinkV98(url,onStatus) {
    const response=await fetch(endpoint+'/guide-read',{method:'POST',headers:{'Content-Type':'application/json','X-Roam-Token':token},body:JSON.stringify({url}),signal:controller.signal});
    const payload=await response.json().catch(()=>({}));
    if(response.ok&&payload.source?.text)return guideContentV98(payload.source.text);
+   backendIssue=(payload.error||'未返回正文')+'（HTTP '+response.status+'）';
+   if(response.status===401){const err=Error('AI 服务访问口令未保存或不正确，请到首页 AI 服务设置重新填写并保存。');err.config=true;throw err}
   }finally{clearTimeout(timer)}
- }catch(e){/* The public reader remains available if the backend is not yet updated. */}
+ }catch(e){if(e.config)throw e;backendIssue=backendIssue||e.message}
 
  const ua='Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1';
  let lastError;
@@ -67,7 +70,7 @@ async function guideReadLinkV98(url,onStatus) {
    return guideContentV98(await response.text());
   }catch(e){lastError=e.name==='AbortError'?Error('网页读取超时'):e}finally{clearTimeout(timer)}
  }
- throw lastError||Error('未取得攻略正文');
+ throw Error((backendIssue?'旅行服务：'+backendIssue+'；':'')+'备用阅读：'+(lastError?.message||'未取得攻略正文'));
 }
 
 function openGuideImportV96(){
@@ -81,7 +84,7 @@ function openGuideImportV96(){
  <label>新旅行名称（可选）<input id="guideNameV96" maxlength="80" placeholder="留空则由 AI 根据攻略命名"></label>
  <label>我的调整意见（可选）<textarea id="guideNeedsV96" maxlength="1500" placeholder="例如：轻松一些、JR优先、保留原攻略的全部主要景点"></textarea></label>
  <p class="muted">链接正文通过网页阅读服务提取；截图文字在浏览器中识别，再由已配置的 AI 服务规划。原攻略未核实的票价、预约及营业时间会注明待核实。</p>
- <p id="guideStatusV96" role="status" aria-live="polite"></p><div id="guidePreviewV96" hidden></div>
+ <p id="guideStatusV96" role="status" aria-live="polite" style="white-space:pre-wrap;overflow-wrap:anywhere"></p><div id="guidePreviewV96" hidden></div>
  <div class="actions"><button id="guideCloseV96" type="button" class="secondary">关闭</button><button id="guideGenerateV96" type="button">AI 总结并生成行程</button><button id="guideSaveV96" type="button" hidden>保存为新旅行</button></div>`;
  document.body.appendChild(dialog);
  const get=id=>dialog.querySelector('#guide'+id+'V96');let draft=null,busy=false,readKey='',thumbs=[],manualDays=false;
