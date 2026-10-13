@@ -132,7 +132,7 @@ async function readGuideV98(payload){
 
 export default {
  async fetch(request,env){
-  const headers={'Access-Control-Allow-Origin':ORIGIN,'Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, X-Roam-Token','Vary':'Origin','Content-Type':'application/json','Cache-Control':'no-store'};
+  const headers={'Access-Control-Allow-Origin':ORIGIN,'Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, X-Roam-Token','Vary':'Origin','Content-Type':'application/json','Cache-Control':'no-store','X-Roam-Version':'V99','Access-Control-Expose-Headers':'X-Roam-Version'};
   const reply=(body,status=200)=>new Response(JSON.stringify(body),{status,headers});
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
   if(request.method!=='POST'||!['/analyze','/route-analyze','/assistant','/guide-read'].includes(new URL(request.url).pathname))return reply({error:'Not found'},404);
