@@ -43,7 +43,7 @@ function openGuideImportV96(){
   if(url){status('正在读取小红书链接正文…');const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),30000);try{
    const response=await fetch('https://r.jina.ai/'+url,{signal:controller.signal});if(!response.ok)throw Error('HTTP '+response.status);
    let text=await response.text();text=text.split('Markdown Content:').pop().trim();
-   if(text.length<100||/访问频繁|安全验证|验证码|笔记不存在|内容已删除|登录后查看|page not found|access denied|captcha|Sign in to continue/i.test(text)||(/登录|login/i.test(text)&&!(/攻略|路线|行程|景点|游玩|交通|住宿/.test(text))))throw Error('未读取到可用的攻略正文');
+   if(text.length<100||/访问频繁|安全验证|验证码|笔记不存在|内容已删除|你访问的页面不见了|页面不存在|笔记已失效|登录后查看|page not found|access denied|captcha|Sign in to continue/i.test(text)||(/登录|login/i.test(text)&&!(/攻略|路线|行程|景点|游玩|交通|住宿/.test(text))))throw Error('未读取到可用的攻略正文');
    pieces.push('【小红书链接正文】\n'+text.slice(0,10000));
   }catch(e){warnings.push('链接读取失败，请补充攻略截图或正文（'+(e.name==='AbortError'?'读取超时':e.message)+'）')}finally{clearTimeout(timer)}}
   if(files.length){
