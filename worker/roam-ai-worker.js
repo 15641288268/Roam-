@@ -76,7 +76,7 @@ function guideAllowedURLV98(value){
  return u;
 }
 
-function guideStructuredTextV99(html,expectedId){
+function guideStructuredTextV100(html,expectedId){
  // Parse JSON string fields only; never execute scripts from the remote page.
  const keys=['"noteData":','"noteDetailMap":'];
  for(const key of keys){
@@ -96,7 +96,7 @@ function guideStructuredTextV99(html,expectedId){
 }
 
 function guideHTMLTextV98(html,expectedId){
- const structured=guideStructuredTextV99(html,expectedId);if(structured)return structured.slice(0,18000);
+ const structured=guideStructuredTextV100(html,expectedId);if(structured)return structured.slice(0,18000);
  const tags=[...html.matchAll(/<div\b[^>]*>/gi)];
  const tag=tags.find(m=>{const cl=m[0].match(/class=["']([^"']+)["']/i)?.[1]||'';return cl.split(/\s+/).some(c=>['author-desc','author-desc-content','note-desc','desc'].includes(c))||/id=["']detail-desc["']/i.test(m[0])});
  if(!tag)throw Error('未取得笔记正文，可能需要在小红书中打开；请补充截图或正文');
@@ -117,43 +117,24 @@ async function readGuideV98(payload){
     if([301,302,303,307,308].includes(r.status)){
      const location=r.headers.get('Location');if(!location)throw Error('分享链接没有跳转地址');
      url=guideAllowedURLV98(new URL(location,url).href);
-     if(/\/login(?:[/?]|$)/i.test(url.pathname))throw Error('小红书要求登录，自动读取未取得正文；请上传截图或粘贴正文');
+     if(/\/(?:website-login\/captcha|captcha|verify)(?:[/?]|$)/i.test(url.pathname)){const e=Error('小红书对后台读取要求验证码，未能取得攻略正文。请打开原笔记后上传截图或复制正文。');e.code='XHS_VERIFICATION_REQUIRED';throw e}
+     if(/\/login(?:[/?]|$)/i.test(url.pathname)){const e=Error('小红书要求登录，后台未取得攻略正文。请打开原笔记后上传截图或复制正文。');e.code='XHS_LOGIN_REQUIRED';throw e}
      continue;
     }
     if(!r.ok)throw Error('小红书网页 HTTP '+r.status);
     const html=await r.text();if(html.length>2e6)throw Error('笔记页面过大');
     const noteId=url.pathname.match(/\/(?:item|explore)\/([a-f0-9]{24})/i)?.[1];
-    const text=guideHTMLTextV98(html,noteId);return {source:{url:original,text},provider:'小红书手机网页',version:'V99'};
+    const text=guideHTMLTextV98(html,noteId);return {source:{url:original,text},provider:'小红书手机网页',version:'V100'};
    }
    throw Error('分享链接跳转过多');
   }finally{clearTimeout(timer)}
- }catch(e){return {error:e.name==='AbortError'?'读取小红书网页超时':e.message,status:422,version:'V99'}}
-}
-
-
-async function guideProbeV100() {
- const url='https://xhslink.cn/o/4JONuwcdP8w';
- let current=guideAllowedURLV98(url),redirects=[];
- const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
- try{
-  for(let i=0;i<6;i++){
-   const r=await fetch(current.href,{redirect:'manual',headers:{'User-Agent':GUIDE_UA_V98,Accept:'text/html,application/xhtml+xml','Accept-Language':'zh-CN,zh;q=0.9'},signal:controller.signal});
-   if([301,302,303,307,308].includes(r.status)){
-    const next=guideAllowedURLV98(new URL(r.headers.get('Location')||'',current).href);
-    redirects.push({status:r.status,host:next.host,path:next.pathname});current=next;continue;
-   }
-   const html=await r.text();
-   return {status:r.status,host:current.host,path:current.pathname,title:(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]||'').slice(0,120),bytes:html.length,hasNoteData:html.includes('"noteData":'),hasNoteDetailMap:html.includes('"noteDetailMap":'),hasAuthorDesc:html.includes('author-desc'),hasDay1:/Day\s*1/i.test(html),redirects};
-  }
-  return {error:'too many redirects',redirects};
- }catch(e){return {error:e.message,redirects}}finally{clearTimeout(timer)}
+ }catch(e){return {error:e.name==='AbortError'?'读取小红书网页超时':e.message,status:422,code:e.code||'GUIDE_READ_FAILED',version:'V100'}}
 }
 
 export default {
  async fetch(request,env){
-  const headers={'Access-Control-Allow-Origin':ORIGIN,'Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, X-Roam-Token','Vary':'Origin','Content-Type':'application/json','Cache-Control':'no-store','X-Roam-Version':'V99','Access-Control-Expose-Headers':'X-Roam-Version'};
+  const headers={'Access-Control-Allow-Origin':ORIGIN,'Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, X-Roam-Token','Vary':'Origin','Content-Type':'application/json','Cache-Control':'no-store','X-Roam-Version':'V100','Access-Control-Expose-Headers':'X-Roam-Version'};
   const reply=(body,status=200)=>new Response(JSON.stringify(body),{status,headers});
-  if(request.method==='GET'&&new URL(request.url).pathname==='/guide-reader-health'&&request.headers.get('Origin')===ORIGIN)return reply(await guideProbeV100());
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
   if(request.method!=='POST'||!['/analyze','/route-analyze','/assistant','/guide-read'].includes(new URL(request.url).pathname))return reply({error:'Not found'},404);
   if(request.headers.get('Origin')!==ORIGIN)return reply({error:'Origin denied'},403);
