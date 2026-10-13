@@ -130,10 +130,30 @@ async function readGuideV98(payload){
  }catch(e){return {error:e.name==='AbortError'?'读取小红书网页超时':e.message,status:422,version:'V99'}}
 }
 
+
+async function guideProbeV100() {
+ const url='https://xhslink.cn/o/4JONuwcdP8w';
+ let current=guideAllowedURLV98(url),redirects=[];
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+ try{
+  for(let i=0;i<6;i++){
+   const r=await fetch(current.href,{redirect:'manual',headers:{'User-Agent':GUIDE_UA_V98,Accept:'text/html,application/xhtml+xml','Accept-Language':'zh-CN,zh;q=0.9'},signal:controller.signal});
+   if([301,302,303,307,308].includes(r.status)){
+    const next=guideAllowedURLV98(new URL(r.headers.get('Location')||'',current).href);
+    redirects.push({status:r.status,host:next.host,path:next.pathname});current=next;continue;
+   }
+   const html=await r.text();
+   return {status:r.status,host:current.host,path:current.pathname,title:(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]||'').slice(0,120),bytes:html.length,hasNoteData:html.includes('"noteData":'),hasNoteDetailMap:html.includes('"noteDetailMap":'),hasAuthorDesc:html.includes('author-desc'),hasDay1:/Day\s*1/i.test(html),redirects};
+  }
+  return {error:'too many redirects',redirects};
+ }catch(e){return {error:e.message,redirects}}finally{clearTimeout(timer)}
+}
+
 export default {
  async fetch(request,env){
   const headers={'Access-Control-Allow-Origin':ORIGIN,'Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, X-Roam-Token','Vary':'Origin','Content-Type':'application/json','Cache-Control':'no-store','X-Roam-Version':'V99','Access-Control-Expose-Headers':'X-Roam-Version'};
   const reply=(body,status=200)=>new Response(JSON.stringify(body),{status,headers});
+  if(request.method==='GET'&&new URL(request.url).pathname==='/guide-reader-health'&&request.headers.get('Origin')===ORIGIN)return reply(await guideProbeV100());
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
   if(request.method!=='POST'||!['/analyze','/route-analyze','/assistant','/guide-read'].includes(new URL(request.url).pathname))return reply({error:'Not found'},404);
   if(request.headers.get('Origin')!==ORIGIN)return reply({error:'Origin denied'},403);
