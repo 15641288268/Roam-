@@ -27,7 +27,8 @@ async function tripCoverFetchV103(url){
  try{const r=await fetch(url,{signal:controller.signal});if(!r.ok)throw Error('照片服务暂不可用');return await r.json()}finally{clearTimeout(timer)}
 }
 function tripCoverPlainV103(value){return String(value||'').replace(/<[^>]*>/g,'').replace(/&amp;/g,'&').replace(/&quot;/g,'"').trim()}
-function tripCoverSafeURLV103(value){try{const u=new URL(value);return u.protocol==='https:'&&/^(?:upload\.wikimedia\.org|commons\.wikimedia\.org|[a-z-]+\.wikipedia\.org|creativecommons\.org)$/.test(u.hostname)?u.href:''}catch(e){return ''}}
+function tripCoverSafeURLV103(value){try{const u=new URL(value);return u.protocol==='https:'&&/^(?:(?:upload|thumb)\.wikimedia\.org|commons\.wikimedia\.org|[a-z-]+\.wikipedia\.org|creativecommons\.org)$/.test(u.hostname)?u.href:''}catch(e){return ''}}
+function tripCoverNameMatchV103(title,query){const clean=s=>String(s||'').toLowerCase().replace(/[\s_・·＋+()（）,-]/g,'');const a=clean(title),b=clean(query);return a.length>1&&b.length>1&&(a.includes(b)||b.includes(a))}
 async function tripCoverPhotoV103(selection){
  const queries=[selection.english,selection.name,selection.destination].map(x=>String(x||'').trim()).filter(Boolean);
  for(const query of [...new Set(queries)].slice(0,3)){
@@ -35,7 +36,7 @@ async function tripCoverPhotoV103(selection){
    try{
     const params=new URLSearchParams({origin:'*',action:'query',generator:'search',gsrsearch:query,gsrlimit:'5',prop:'pageimages',piprop:'thumbnail|name|original',pilicense:'free',pithumbsize:'1600',format:'json'});
     const data=await tripCoverFetchV103('https://'+lang+'.wikipedia.org/w/api.php?'+params);
-    const pages=Object.values(data.query?.pages||{}).filter(p=>tripCoverSafeURLV103(p.thumbnail?.source)&&p.pageimage&&!/\.svg$|(?:^|[_ -])(?:map|logo|flag|coat|diagram)(?:[_ .-]|$)/i.test(p.pageimage));
+    const pages=Object.values(data.query?.pages||{}).filter(p=>tripCoverNameMatchV103(p.title,query)&&tripCoverSafeURLV103(p.thumbnail?.source)&&p.pageimage&&!/\.svg$|(?:^|[_ -])(?:map|logo|flag|coat|diagram)(?:[_ .-]|$)/i.test(p.pageimage));
     pages.sort((a,b)=>((b.title||'').includes(query)?3:0)+(Number(b.original?.width)>Number(b.original?.height)?1:0)-((a.title||'').includes(query)?3:0)-(Number(a.original?.width)>Number(a.original?.height)?1:0));
     for(const page of pages.slice(0,2)){
      const metaParams=new URLSearchParams({origin:'*',action:'query',titles:'File:'+page.pageimage,prop:'imageinfo',iiprop:'url|extmetadata',format:'json'});
@@ -44,7 +45,7 @@ async function tripCoverPhotoV103(selection){
      const license=tripCoverPlainV103(extra?.LicenseShortName?.value),author=tripCoverPlainV103(extra?.Artist?.value);
      const source=tripCoverSafeURLV103(info?.descriptionurl);
      if(!source||!license)continue;
-     return {image:page.thumbnail.source,source,credit:[author.slice(0,120),license].filter(Boolean).join(' · '),photoTitle:String(page.title||query)};
+     return {image:page.thumbnail.source,source,credit:[author.slice(0,120),license].filter(Boolean).join(' · '),photoTitle:String(page.title||query),usesDestination:query===selection.destination&&query!==selection.name&&query!==selection.english};
     }
    }catch(e){/* Try another public photo source query. */}
   }
@@ -76,7 +77,7 @@ function tripCoverQueueProjectV103(project,force=false){
   }
   try{
    const photo=await tripCoverPhotoV103(selection);
-   tripCoverSaveV103(id,key,{...photo,landmark:selection.name,aiSelected,aiAttempted,attemptedAt:Date.now()});
+   tripCoverSaveV103(id,key,{...photo,landmark:photo.usesDestination?destination:selection.name,aiSelected:aiSelected&&!photo.usesDestination,aiAttempted,attemptedAt:Date.now()});
   }catch(e){tripCoverSaveV103(id,key,{image:'',landmark:selection.name,aiSelected,aiAttempted,attemptedAt:Date.now(),error:'暂未找到合适照片'})}
  }).finally(()=>{tripCoverJobsV103.delete(id);tripCoverUpdateCardV103(id)});
 }
