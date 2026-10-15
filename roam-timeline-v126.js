@@ -60,7 +60,38 @@
    body.append(title,meta);
    if(conflicts.has(i)){const warning=document.createElement('span');warning.className='roam-timeline-warning';warning.textContent='⚠ 与相邻活动开始时间相差不到30分钟';body.appendChild(warning)}
    if(p._kind==='place'){const edit=document.createElement('button');edit.type='button';edit.className='secondary';edit.textContent='编辑时间 / 地点';edit.onclick=()=>{if(typeof editPlace==='function')editPlace(p.id)};body.appendChild(edit)}
-   row.append(time,marker,body);timeline.appendChild(row);
+   row.append(time,marker,body);
+   // Show travel segments between consecutive itinerary places (not bookings).
+   if(p._kind==='place'){
+    const next=places.find((candidate,j)=>places.findIndex(v=>v.id===p.id)===j-1);
+    if(next){
+     const route=(db.routes||[]).find(r=>Number(r.day)===day&&r.from===p.name&&r.to===next.name);
+     const segment=document.createElement('div');segment.className='roam-timeline-route-v141';
+     const info=document.createElement('div');info.className='roam-timeline-route-info-v141';
+     if(route){
+      const options=typeof routeOptionsV55==='function'?routeOptionsV55(route):[];
+      const option=options[Math.min(Number(route.selectedOption)||0,Math.max(0,options.length-1))]||route;
+      info.textContent='↳ '+(option.mode||route.mode||'交通')+' · '+(Number(option.minutes||route.minutes)>0?(option.minutes||route.minutes)+' 分钟':'时长待确认')+(Number(option.cost||route.cost)>0?' · '+(option.cost||route.cost)+' '+(route.currency||db.currency||''):'')+' · '+p.name+' → '+next.name;
+      const editRoute=document.createElement('button');editRoute.type='button';editRoute.className='secondary';editRoute.textContent='编辑路段';
+      editRoute.onclick=()=>{if(typeof editRouteV55==='function')editRouteV55(route.id);else if(typeof editRouteFull==='function')editRouteFull(route.id)};
+      segment.append(info,editRoute);
+     }else{
+      info.textContent='↳ '+p.name+' → '+next.name+' · 尚未设置交通';
+      const add=document.createElement('button');add.type='button';add.className='secondary';add.textContent='添加路段';
+      add.onclick=()=>{
+       const modes=['步行','公交','地铁','火车','出租车','自行车','其他'];
+       const answer=prompt('交通方式：'+modes.join(' / '),'步行');if(answer===null)return;
+       const mode=answer.trim();if(!mode)return;
+       const mins=prompt('预计交通时间（分钟）','30');if(mins===null)return;
+       const minutes=Number(mins);if(!Number.isFinite(minutes)||minutes<0){alert('请输入有效的交通分钟数');return}
+       db.routes.push({id:uid(),day,from:p.name,to:next.name,mode,minutes,cost:0,currency:db.currency});
+       persist();
+      };
+      segment.append(info,add);
+     }
+     timeline.appendChild(row);timeline.appendChild(segment);
+    }else timeline.appendChild(row);
+   }else timeline.appendChild(row);
   });
   const note=document.createElement('p');note.className='muted';note.textContent='时间轴按开始时间排序；预订按日期匹配。红色提醒仅表示开始时间接近，未包含实际停留时长或交通耗时。';timeline.appendChild(note);
  }
