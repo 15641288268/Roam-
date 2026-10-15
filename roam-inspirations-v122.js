@@ -3,13 +3,13 @@
  const normalized=s=>String(s||'').normalize('NFKC').toLowerCase().replace(/[\s·・,，。()（）\-]/g,'');
  function items(){if(!Array.isArray(db.inspirations))db.inspirations=[];return db.inspirations}
  function mount(){
-  const panel=document.getElementById('roamProjectPanel');if(!panel)return;
+  const panel=document.getElementById('roamInspirationPageV131');if(!panel)return;
   if(panel.querySelector('.roam-inspiration-v122'))return;
   const entry=document.createElement('section');entry.className='roam-inspiration-v122';
   entry.innerHTML='<div class="roam-inspiration-head"><div><h3>✨ 旅行灵感库 <small id="roamInspirationCount">0</small></h3><p>先收藏想去的地点，再决定加入哪一天。不同旅行独立保存。</p></div></div>'+
   '<details><summary>＋ 收集景点或攻略地点</summary><label>地点名称（每行一个）<textarea id="roamInspirationNames" placeholder="平野神社\n宇治平等院\n锦市场"></textarea></label><label>攻略来源（可选）<input id="roamInspirationSource" placeholder="例如：朋友推荐 / 攻略截图 / 网站"></label><button type="button" id="roamInspirationAdd">保存到灵感库</button></details>'+
   '<div id="roamInspirationItems" class="roam-inspiration-items"></div>';
-  const guide=panel.querySelector('.guide-entry-v96');if(guide)guide.after(entry);else panel.appendChild(entry);
+  panel.appendChild(entry);
   const list=entry.querySelector('#roamInspirationItems');
   function redraw(){
    const data=items();entry.querySelector('#roamInspirationCount').textContent=data.length;
