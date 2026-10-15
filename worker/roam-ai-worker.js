@@ -49,7 +49,7 @@ async function textAssistantV68(payload,env){
   const ids=parsed.days.map(d=>Number(d.day));
   if(new Set(ids).size!==ids.length||ids.some(n=>!Number.isInteger(n)||n<1||n>requiredDays))return null;
  }return {result:parsed,provider}};
- async function limited(label,url,options,parseReply,ms=11500,retries=0){
+ async function limited(label,url,options,parseReply,ms=25000,retries=0){
   for(let attempt=0;attempt<=retries;attempt++){
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),ms);
@@ -70,21 +70,21 @@ async function textAssistantV68(payload,env){
   const result=await limited('Gemini','https://generativelanguage.googleapis.com/v1beta/models/'+MODEL+':generateContent',{
    method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':env.GEMINI_API_KEY},
    body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{responseMimeType:'application/json',temperature:0.2,maxOutputTokens:6000}})
-  },d=>(d.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join(''),8500,1);
+  },d=>(d.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join(''),22000,0);
   if(result)return result;
  }
  if(env.OPENROUTER_API_KEY){
   const result=await limited('OpenRouter','https://openrouter.ai/api/v1/chat/completions',{
    method:'POST',headers:{Authorization:'Bearer '+env.OPENROUTER_API_KEY,'Content-Type':'application/json','HTTP-Referer':'https://15641288268.github.io/Roam-/','X-Title':'Roam Travel Planner'},
    body:JSON.stringify({model:'openrouter/free',messages:[{role:'user',content:prompt}],temperature:0.2,max_tokens:6500})
-  },d=>d.choices?.[0]?.message?.content);
+  },d=>d.choices?.[0]?.message?.content,25000);
   if(result)return result;
  }
  if(env.GROQ_API_KEY){
   const result=await limited('Groq','https://api.groq.com/openai/v1/chat/completions',{
    method:'POST',headers:{Authorization:'Bearer '+env.GROQ_API_KEY,'Content-Type':'application/json'},
    body:JSON.stringify({model:'openai/gpt-oss-120b',messages:[{role:'user',content:prompt}],temperature:0.2,max_tokens:4200})
-  },d=>d.choices?.[0]?.message?.content);
+  },d=>d.choices?.[0]?.message?.content,25000);
   if(result)return result;
  }
  // Cloudflare Workers AI: fourth, quota-limited free text fallback; requires AI binding, not another API key.
@@ -92,7 +92,7 @@ async function textAssistantV68(payload,env){
   try{
    const output=await Promise.race([
     env.AI.run('@cf/meta/llama-3.1-8b-instruct-fp8',{messages:[{role:'system',content:'你是旅行规划助手。只返回合法 JSON 对象，不要附加解释。'},{role:'user',content:prompt}],max_tokens:3200,temperature:0.2}),
-    new Promise((_,reject)=>setTimeout(()=>reject(Error('响应超时')),14500))
+    new Promise((_,reject)=>setTimeout(()=>reject(Error('响应超时')),25000))
    ]);
    const answer=typeof output==='string'?output:output?.response||output?.result?.response||'';
    const result=accept(answer,'Cloudflare Workers AI');
