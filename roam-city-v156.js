@@ -53,15 +53,7 @@ function patch(){
   const val='🌐 '+dayLabel((db.places||[]).filter(p=>Number(p.day)===day),trip);
   if(sub.textContent!==val)sub.textContent=val;
  }
- document.querySelectorAll('#aiDays .ai-day').forEach((card,i)=>{
-  const day=window.roamCityGetDraft?.()?.days?.[i];
-  const title=card.querySelector('b');if(!title)return;
-  let sub=card.querySelector('.roam-ai-city-v156');
-  if(!sub){sub=document.createElement('div');sub.className='roam-ai-city-v156';title.after(sub)}
-  const places=day?.places||[...card.querySelectorAll('p b')].map(b=>({name:b.textContent}));
-  const val='🌐 '+dayLabel(places,trip);
-  if(sub.textContent!==val)sub.textContent=val;
- });
+
 }
 const css=document.createElement('style');css.textContent=`
 .roam-city-tag-v156{display:block!important;width:max-content;max-width:100%;margin:6px 0 1px;padding:4px 9px!important;border-radius:9px!important;background:#e7f2f5!important;color:#20556a!important;font-size:12px!important;font-weight:650!important;text-align:left;white-space:normal}
