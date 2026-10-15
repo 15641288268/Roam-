@@ -1,7 +1,7 @@
 /* V147: additive interaction improvements; existing itinerary data untouched. */
 (()=>{'use strict';
 const openByTrip=new Map();let lastTab='home',lastScroll=0;
-const tripKey=()=>String(window.roamProjects?.active||'default');
+const tripKey=()=>String(roamProjects?.active||'default');
 function expandedSet(){const k=tripKey();if(!openByTrip.has(k))openByTrip.set(k,new Set());return openByTrip.get(k)}
 function decorate(){
  const list=document.getElementById('planList');if(!list)return;
@@ -38,7 +38,7 @@ function setup(){
   if(t==='route'){if(typeof window.openTabRoute==='function')window.openTabRoute();else window.show?.('map');return}
   if(t==='place'){window.show?.('plan');setTimeout(()=>{const input=document.getElementById('pname');input?.scrollIntoView({behavior:'smooth',block:'center'});input?.focus({preventScroll:true})},100);return}
   if(t==='booking'){window.show?.('bookings');setTimeout(()=>document.querySelector('#bookings input')?.focus(),100);return}
-  if(t==='import'){window.show?.('home');setTimeout(()=>document.querySelector('[id*=Import],[id*=import]')?.scrollIntoView({behavior:'smooth',block:'center'}),100)}
+  if(t==='import'){const b=[...document.querySelectorAll('button')].find(x=>/导入攻略|截图导入|文字导入/.test(x.textContent||''));if(b){b.scrollIntoView({behavior:'smooth',block:'center'});b.click()}else{window.show?.('home');alert('请在攻略导入区域选择截图或文字导入。')}}
  });
  document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>setTimeout(visible,30)));
  const pageObserver=new MutationObserver(visible);pageObserver.observe(document.querySelector('main.wrap'),{attributes:true,attributeFilter:['class'],subtree:true});
