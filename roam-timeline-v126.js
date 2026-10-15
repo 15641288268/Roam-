@@ -59,7 +59,7 @@
    const meta=document.createElement('small');meta.textContent=p._kind==='booking'?'📌 '+(p.type||'预订')+(p.endTime?' · 至 '+p.endTime:''):(p.type||'地点')+(p.note?' · '+p.note:'');
    body.append(title,meta);
    if(conflicts.has(i)){const warning=document.createElement('span');warning.className='roam-timeline-warning';warning.textContent='⚠ 与相邻活动开始时间相差不到30分钟';body.appendChild(warning)}
-   if(p._kind==='place'){const edit=document.createElement('button');edit.type='button';edit.className='secondary';edit.textContent='编辑时间 / 地点';edit.onclick=()=>{mode='list';build();if(typeof editPlace==='function')editPlace(p.id)};body.appendChild(edit)}
+   if(p._kind==='place'){const edit=document.createElement('button');edit.type='button';edit.className='secondary';edit.textContent='编辑时间 / 地点';edit.onclick=()=>{if(typeof editPlace==='function')editPlace(p.id)};body.appendChild(edit)}
    row.append(time,marker,body);timeline.appendChild(row);
   });
   const note=document.createElement('p');note.className='muted';note.textContent='时间轴按开始时间排序；预订按日期匹配。红色提醒仅表示开始时间接近，未包含实际停留时长或交通耗时。';timeline.appendChild(note);
