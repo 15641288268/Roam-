@@ -5,7 +5,7 @@ function parseAIJSON(text){
  if(start>=0&&end>start)candidates.push(raw.slice(start,end+1));
  for(const candidate of candidates){try{const obj=JSON.parse(candidate);if(obj&&typeof obj==='object'&&!Array.isArray(obj))return obj}catch{}}
  // Recover a complete days array when the response was truncated mid-JSON.
- const m=raw.match(/"days"\\s*:\\s*\\[/);
+ const m=raw.match(new RegExp('"days"\\s*:\\s*\\['));
  if(m){const start=raw.indexOf('[',m.index),items=[];let depth=0,inString=false,escaped=false,objStart=-1;
   for(let i=start+1;i<raw.length;i++){const c=raw[i];if(inString){if(escaped)escaped=false;else if(c==='\\\\')escaped=true;else if(c==='"')inString=false;continue}
    if(c==='"'){inString=true;continue}if(c==='{'){if(depth++===0)objStart=i}else if(c==='}'&&depth>0){if(--depth===0&&objStart>=0){try{items.push(JSON.parse(raw.slice(objStart,i+1)))}catch{}objStart=-1}}}
