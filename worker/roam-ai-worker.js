@@ -23,8 +23,10 @@ async function textAssistantV68(payload,env){
  const mode=String(payload.mode||'chat'),question=String(payload.prompt||'').slice(0,5000),context=JSON.stringify(payload.context||{}).slice(0,8000);
  if(!question.trim())return {error:'请输入 AI 请求',status:400};
  const schemas={plan:'{"summary":"说明","destination":"城市","days":[{"day":1,"places":[{"name":"真实景点名称","activity":"游玩活动","time":"09:00","type":"景点","minutes":90,"cost":0}]}]}',place:'{"answer":"景点建议、附近餐饮、游览时长及待核实信息"}',optimize:'{"answer":"优化建议，按天说明行程与交通安排"}',budget:'{"answer":"预算分析与省钱建议"}'};
- const prompt='你是 Roam 旅行助手。仅用简体中文，不能虚构实时票价、营业时间、实时班次、预约网址。JSON 必须有效。'+(mode==='plan'?'地点名必须是地图上的真实实体，活动另写activity。每天最多8个地点，按用户指定的全部日期输出；如输出受限，优先保留已完成的天数。输出简洁，每个景点不超过60字。':'')+'按照 JSON 格式返回：'+(schemas[mode]||'{"answer":"中文答复"}')+'\n旅行上下文：'+context+'\n用户要求：'+question;
+ const prompt='你是 Roam 旅行助手。仅用简体中文，不能虚构实时票价、营业时间、实时班次、预约网址。JSON 必须有效。'+(mode==='plan'?'地点名必须是地图上的真实实体，活动另写activity。每天2至3个地点，必须输出用户指定的全部日期，不能返回部分行程。输出紧凑JSON，每个活动不超过12字。':'')+'按照 JSON 格式返回：'+(schemas[mode]||'{"answer":"中文答复"}')+'\n旅行上下文：'+context+'\n用户要求：'+question;
  const errors=[];
+ const planFormatRule=mode==='plan'?'只输出一个完整JSON对象，必须有summary、destination、days。days数组必须包含全部要求的日期，每个元素有day整数和places数组，places每项有name、time、activity。不要代码块、解释或额外文本。若用户要求15天，则必须完整返回15个day，不得提前结束。每一天2至3个地点，activity不超过12个汉字。':'';
+
  const repairPlan=(p)=>{
   if(mode!=='plan'||!p||typeof p!=='object')return p;
   if(!Array.isArray(p.days)&&Array.isArray(p.itinerary))p.days=p.itinerary;
@@ -58,8 +60,27 @@ async function textAssistantV68(payload,env){
    const d=await r.json().catch(()=>({}));
    if(!r.ok){if((r.status===503||r.status===429)&&attempt<retries){await new Promise(resolve=>setTimeout(resolve,700));continue}errors.push(label+' HTTP '+r.status+': '+String(d.error?.message||'服务限流或模型不可用').slice(0,120));return null}
    const result=accept(parseReply(d),label);
-   if(!result)errors.push(label+' 返回格式不符合要求');
-   return result;
+   if(result)return result;
+   // Retry the same provider once with explicit format correction, not a new itinerary.
+   if(mode==='plan'){
+    const retryPrompt=prompt+'\\n上次回答未通过格式校验。请自行检查后再返回：'+planFormatRule+' 只返回可直接被JSON.parse解析的完整JSON。';
+    try{
+     const retryOptions={...options};
+     const body=JSON.parse(options.body);
+     if(label==='Gemini')body.contents=[{role:'user',parts:[{text:retryPrompt}]}];
+     else body.messages=[{role:'user',content:retryPrompt}];
+     retryOptions.body=JSON.stringify(body);
+     const ctl=new AbortController(),tid=setTimeout(()=>ctl.abort(),ms);
+     try{
+      const rr=await fetch(url,{...retryOptions,signal:ctl.signal});
+      const dd=await rr.json().catch(()=>({}));
+      if(rr.ok){const fixed=accept(parseReply(dd),label);if(fixed)return fixed}
+      else errors.push(label+' 格式重试 HTTP '+rr.status);
+     }finally{clearTimeout(tid)}
+    }catch(e){errors.push(label+' 格式重试失败：'+String(e.message||e).slice(0,70))}
+   }
+   errors.push(label+' 返回格式或完整天数不符合要求');
+   return null;
   }catch(e){errors.push(label+(controller.signal.aborted?' 响应超时（'+Math.round(ms/1000)+'秒）':': '+String(e.message||e).slice(0,100)));return null}
   finally{clearTimeout(timer)}
   }
@@ -76,14 +97,14 @@ async function textAssistantV68(payload,env){
  if(env.OPENROUTER_API_KEY){
   const result=await limited('OpenRouter','https://openrouter.ai/api/v1/chat/completions',{
    method:'POST',headers:{Authorization:'Bearer '+env.OPENROUTER_API_KEY,'Content-Type':'application/json','HTTP-Referer':'https://15641288268.github.io/Roam-/','X-Title':'Roam Travel Planner'},
-   body:JSON.stringify({model:'openrouter/free',messages:[{role:'user',content:prompt}],temperature:0.2,max_tokens:6500})
+   body:JSON.stringify({model:'openrouter/free',messages:[{role:'user',content:prompt}],temperature:0.2,max_tokens:7500})
   },d=>d.choices?.[0]?.message?.content,25000);
   if(result)return result;
  }
  if(env.GROQ_API_KEY){
   const result=await limited('Groq','https://api.groq.com/openai/v1/chat/completions',{
    method:'POST',headers:{Authorization:'Bearer '+env.GROQ_API_KEY,'Content-Type':'application/json'},
-   body:JSON.stringify({model:'openai/gpt-oss-120b',messages:[{role:'user',content:prompt}],temperature:0.2,max_tokens:4200})
+   body:JSON.stringify({model:'openai/gpt-oss-120b',messages:[{role:'user',content:prompt}],temperature:0.2,max_tokens:7500})
   },d=>d.choices?.[0]?.message?.content,25000);
   if(result)return result;
  }
@@ -100,7 +121,7 @@ async function textAssistantV68(payload,env){
    errors.push('Cloudflare Workers AI 返回格式不符合要求');
   }catch(e){errors.push('Cloudflare Workers AI：'+String(e?.message||e).slice(0,120))}
  }
- return {error:'AI 服务均未成功（每个服务最多等待约12秒）：'+errors.join('；'),status:503};
+ return {error:'AI 服务均未成功（每个服务首次最多等待25秒，格式重试可能额外等待25秒）：'+errors.join('；'),status:503};
 }
 
 
