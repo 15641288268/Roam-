@@ -94,3 +94,13 @@ body > header #roamVersionBadge {
 .roam-day-open{font-size:26px;min-width:39px;padding:3px 8px}
 .roam-date-footer{border-top:1px solid #dce7f2;padding-top:14px;display:grid;gap:9px}
 .roam-date-footer .muted{font-size:12px;margin:0}
+
+/* V115: refined, right-aligned itinerary date control */
+#calendarActionsV105{padding:13px 16px!important;margin-bottom:18px!important}
+.roam-date-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
+.roam-date-current{display:flex;gap:9px;align-items:center;min-width:0;color:#243b5a}
+.roam-date-current strong{font-size:16px!important;font-weight:720;white-space:nowrap}
+.roam-date-icon{display:inline-flex;align-items:center;justify-content:center;color:#47749f;background:#e8f1fc;border-radius:11px;width:33px;height:33px;font-size:20px}
+button.roam-date-edit.secondary{margin-left:auto;min-width:0;white-space:nowrap;min-height:39px;padding:8px 13px!important;border-radius:13px!important;background:rgba(226,237,252,.9)!important;color:#265b97!important;border:1px solid rgba(105,154,210,.22)!important;box-shadow:none!important;font-size:14px;font-weight:650}
+.roam-date-edit span{font-size:21px;line-height:10px;vertical-align:-1px;margin-left:4px}
+@media(max-width:380px){#calendarActionsV105{padding:12px!important}.roam-date-current strong{font-size:14px!important}button.roam-date-edit.secondary{padding:8px 10px!important;font-size:13px}}
