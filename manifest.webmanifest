@@ -1,0 +1,26 @@
+{
+  "id": "/Roam-/",
+  "name": "Roam · 旅行规划",
+  "short_name": "Roam",
+  "description": "行程、地图路线、旅行灵感、预订与预算，一处管理。",
+  "lang": "zh-CN",
+  "start_url": "/Roam-/",
+  "scope": "/Roam-/",
+  "display": "standalone",
+  "background_color": "#f4f7fa",
+  "theme_color": "#136b81",
+  "icons": [
+    {
+      "src": "./icons/roam-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/roam-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
