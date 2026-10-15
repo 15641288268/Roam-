@@ -24,3 +24,33 @@ header,header :is(h1,h2,p,small,span){color:#f8fbff!important}
 .trip-cover-track,.trip-cover-card,.trip-cover-card :is(h2,h3,p,span,strong){color:#fff!important}
 button:not(.secondary):not(.danger):not([data-tab]):not([data-view]):not(:disabled){-webkit-text-fill-color:currentColor}
 @media(prefers-contrast:more){.panel,.item,.roam-timeline-card{border-color:#9ab1cd!important}button.secondary{border-color:#809bbf!important}}
+
+/* V146: explicit contrast for pale action controls (iOS Safari included).
+   Avoid blanket button recoloring: blue primary actions retain white labels. */
+:root{--roam-pale-action-text:#213f63;--roam-pale-action-bg:#e9f0fa}
+.map-leg button.map-apple,
+button.map-apple,
+.plan-connection button,
+.project-switch button,
+.trip-cover-controls button:not(.trip-cover-dot),
+.trip-cover-controls .trip-cover-prev,
+.trip-cover-controls .trip-cover-next,
+.trip-cover-controls .trip-cover-refresh,
+.panel button:disabled,
+.item button:disabled,
+.map-leg button:disabled{
+  color:var(--roam-pale-action-text)!important;
+  -webkit-text-fill-color:var(--roam-pale-action-text)!important;
+  text-shadow:none!important;
+  opacity:1!important;
+}
+.map-leg button.map-apple,button.map-apple,.plan-connection button,.project-switch button,
+.trip-cover-controls button:not(.trip-cover-dot){
+  background:var(--roam-pale-action-bg)!important;
+  border:1px solid #d6e2f2!important;
+}
+.plan-connection button{font-weight:650!important}
+.trip-cover-controls .trip-cover-dot{color:transparent!important;-webkit-text-fill-color:transparent!important}
+.trip-cover-controls button:disabled,.map-leg button:disabled{cursor:not-allowed}
+button[disabled]{opacity:1!important}
+button[disabled]:not(.map-go):not(.active){-webkit-text-fill-color:#516985!important;color:#516985!important}
