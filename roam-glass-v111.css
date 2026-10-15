@@ -275,3 +275,14 @@ dialog input:not([type="checkbox"]):not([type="radio"]),dialog select,dialog tex
 .roam-travel-booking{border-radius:12px;padding:10px;background:#f1f6fd;margin:7px 0;overflow-wrap:anywhere}
 .roam-travel-mode h4{margin:18px 0 9px}
 @media(max-width:450px){.roam-travel-stop{align-items:stretch;flex-direction:column}.roam-travel-stop-actions{justify-content:flex-start}.roam-travel-booking{align-items:flex-start;flex-wrap:wrap}}
+
+/* V128 same-day delay preview */
+.roam-delay-v128{margin:12px 0 16px;padding:13px 15px;border:1px solid #d1e0f0;border-radius:18px;background:rgba(250,253,255,.92);color:#243e5c;min-width:0}
+.roam-delay-v128 summary{font-weight:700;cursor:pointer;list-style-position:inside}
+.roam-delay-v128 .muted{font-size:12px;line-height:1.6;margin:10px 0}
+.roam-delay-v128 label{display:block;margin:11px 0;font-size:13px}
+.roam-delay-v128 select,.roam-delay-v128 input{display:block;width:100%;max-width:100%;margin-top:5px;box-sizing:border-box}
+#roamDelayResultV128{margin-top:12px;overflow-wrap:anywhere}
+.roam-delay-change{padding:9px 11px;border-radius:11px;margin:6px 0;background:#eaf4ff;color:#244f7e;font-size:13px}
+.roam-delay-warning{padding:8px 10px;border-radius:10px;background:#fff2eb;color:#a34d2d;font-size:12px}
+#roamDelayResultV128 button{margin:10px 0;max-width:100%;white-space:normal}
