@@ -42,7 +42,13 @@ async function textAssistantV68(payload,env){
    return !foreign.test(location)&&!(excludeBarcelona&&forbidden.test(location));
   }));
  };
- const accept=(value,provider)=>{const parsed=repairPlan(parseAIJSON(typeof value==='string'?value:JSON.stringify(value||'')));if(!parsed)return null;if(mode==='plan'&&(!Array.isArray(parsed.days)||!parsed.days.length||!destinationCheck(parsed)))return null;return {result:parsed,provider}};
+ const requiredDays=Number(payload.context?.locked?.days)||0;
+ const accept=(value,provider)=>{const parsed=repairPlan(parseAIJSON(typeof value==='string'?value:JSON.stringify(value||'')));if(!parsed)return null;if(mode==='plan'){
+  if(!Array.isArray(parsed.days)||!parsed.days.length||!destinationCheck(parsed))return null;
+  if(requiredDays&&parsed.days.length!==requiredDays)return null;
+  const ids=parsed.days.map(d=>Number(d.day));
+  if(new Set(ids).size!==ids.length||ids.some(n=>!Number.isInteger(n)||n<1||n>requiredDays))return null;
+ }return {result:parsed,provider}};
  async function limited(label,url,options,parseReply,ms=11500,retries=0){
   for(let attempt=0;attempt<=retries;attempt++){
   const controller=new AbortController();
