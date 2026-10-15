@@ -1,0 +1,26 @@
+/* V145 — light surfaces always use readable dark foregrounds */
+:root{--roam-on-light:#1b304b;--roam-on-light-muted:#4b6280}
+main.wrap>section.active,.panel,.item,.stat,.hint,.project-switch,.plan-card,.trip-card,.roam-inspiration-item,.roam-timeline-card,.roam-timeline-route-v141,.roam-plan-view-switch,dialog{color:var(--roam-on-light)!important}
+.panel :is(h1,h2,h3,h4,h5,strong,b,label,summary),.item :is(h2,h3,strong,label,summary),.stat :is(strong,span),.plan-card :is(h2,h3,strong),.roam-timeline-card :is(strong,span),.roam-inspiration-item :is(strong,span),.roam-inspiration-page-v131 :is(h2,h3,strong){color:var(--roam-on-light)!important}
+.panel :is(p,small),.item :is(p,small),.roam-timeline-card small,.roam-timeline-route-info-v141,.roam-inspiration-item small,.hint,.muted{color:var(--roam-on-light-muted)!important}
+.panel a,.item a,.roam-inspiration-item a{color:#1857ac}
+.panel a:hover,.item a:hover{text-decoration:underline}
+.panel input,.panel textarea,.panel select,dialog input,dialog textarea,dialog select{color:#1c314c!important;background-color:#fff!important;-webkit-text-fill-color:#1c314c}
+.panel input::placeholder,.panel textarea::placeholder,dialog input::placeholder,dialog textarea::placeholder{color:#687c97!important;opacity:1}
+.panel input:disabled,.panel textarea:disabled,.panel select:disabled{background:#eaf0f8!important;color:#536985!important;-webkit-text-fill-color:#536985!important;opacity:1}
+button.secondary,.panel button.secondary,.roam-inspiration-item button.secondary{color:#244d81!important;background:#eaf2fc!important;-webkit-text-fill-color:#244d81}
+button.danger{color:#9f2939!important;background:#fff0f2!important;-webkit-text-fill-color:#9f2939}
+#tabs button:not(.active){color:#2a4b72!important;background:#f4f7fc!important;-webkit-text-fill-color:#2a4b72!important}
+#tabs button.active{color:#fff!important;-webkit-text-fill-color:#fff!important}
+.roam-plan-view-switch button:not(.active){color:#2a4b72!important;background:#eaf1fb!important;-webkit-text-fill-color:#2a4b72!important}
+.roam-plan-view-switch button.active{color:#fff!important;background:#265fc0!important;-webkit-text-fill-color:#fff!important}
+.roam-timeline-day-nav button:disabled{background:#e6edf6!important;color:#536a86!important;-webkit-text-fill-color:#536a86!important;opacity:1!important;box-shadow:none!important}
+.roam-inspiration-links-v139 a,.roam-inspiration-links-v139 button{color:#244e84!important;-webkit-text-fill-color:#244e84!important}
+.roam-inspiration-form-v139,.roam-inspiration-form-v139 label{color:#1d3553!important}
+.roam-timeline-warning{color:#9d2d36!important}
+dialog :is(h2,h3,strong,summary,label,p){color:#1b304b!important}
+/* Preserve white lettering on genuinely dark or photographic backgrounds */
+header,header :is(h1,h2,p,small,span){color:#f8fbff!important}
+.trip-cover-track,.trip-cover-card,.trip-cover-card :is(h2,h3,p,span,strong){color:#fff!important}
+button:not(.secondary):not(.danger):not([data-tab]):not([data-view]):not(:disabled){-webkit-text-fill-color:currentColor}
+@media(prefers-contrast:more){.panel,.item,.roam-timeline-card{border-color:#9ab1cd!important}button.secondary{border-color:#809bbf!important}}
