@@ -227,3 +227,27 @@ dialog input:not([type="checkbox"]):not([type="radio"]),dialog select,dialog tex
 .roam-audit-item{display:grid;gap:4px;padding:10px 12px;border-radius:12px;margin:7px 0;background:#f3f7fc;font-size:13px;overflow-wrap:anywhere}
 .roam-audit-item.warn{border-left:3px solid #dc9a38}
 .roam-audit-item.error{border-left:3px solid #c95656}
+
+/* V126 itinerary timeline */
+#planList[hidden],#roamTimelineV126[hidden]{display:none!important}
+.roam-plan-view-switch{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:10px 0 15px;padding:10px 12px;background:rgba(240,247,255,.86);border:1px solid #d4e2f2;border-radius:16px;color:#284463;flex-wrap:wrap}
+.roam-plan-view-switch>span{font-size:13px;font-weight:650}
+.roam-plan-view-switch>div{display:flex;gap:5px}
+.roam-plan-view-switch button{border-radius:12px;padding:8px 11px;font-size:13px}
+.roam-plan-view-switch button.active{background:#275f9d;color:white;border-color:#275f9d}
+.roam-timeline-v126{padding:12px 4px 20px;color:#213b58}
+.roam-timeline-heading{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:0 0 16px;padding:0 8px}
+.roam-timeline-heading small{color:#64788e}
+.roam-timeline-row{display:grid;grid-template-columns:52px 20px minmax(0,1fr);gap:9px;align-items:stretch;min-width:0}
+.roam-timeline-time{font-size:13px;font-weight:750;color:#476787;padding-top:15px;text-align:right}
+.roam-timeline-marker{position:relative;text-align:center;padding-top:14px;color:#3b83c8;font-size:16px}
+.roam-timeline-marker:after{content:"";position:absolute;top:32px;bottom:-12px;left:50%;border-left:2px solid #d3e2f1}
+.roam-timeline-row:last-of-type .roam-timeline-marker:after{display:none}
+.roam-timeline-card{margin:0 0 12px;padding:13px 14px;border-radius:17px;background:rgba(255,255,255,.94);border:1px solid #d6e3f2;min-width:0;overflow-wrap:anywhere}
+.roam-timeline-card strong,.roam-timeline-card small{display:block}
+.roam-timeline-card small{margin-top:6px;color:#63758a;line-height:1.5}
+.roam-timeline-card button{margin-top:9px;font-size:12px;padding:7px 10px}
+.roam-timeline-row.booking .roam-timeline-card{background:#f0f6ff;border-color:#b6d4f4}
+.roam-timeline-row.conflict .roam-timeline-card{border-color:#e3a4a4;background:#fff6f6}
+.roam-timeline-warning{display:block;margin-top:8px;color:#a83f3f;font-size:12px}
+@media(max-width:390px){.roam-timeline-row{grid-template-columns:43px 17px minmax(0,1fr);gap:6px}.roam-timeline-card{padding:10px}.roam-plan-view-switch{padding:8px}}
