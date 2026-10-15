@@ -293,3 +293,12 @@ dialog input:not([type="checkbox"]):not([type="radio"]),dialog select,dialog tex
 .roam-timeline-day-nav button:disabled{opacity:.38}
 .roam-timeline-day-nav select{display:block;width:100%;min-width:0;max-width:100%;padding:9px 5px;border-radius:12px;text-align:center;font-size:12px;box-sizing:border-box}
 @media(max-width:390px){.roam-timeline-day-nav{gap:4px}.roam-timeline-day-nav button{padding:8px 6px;font-size:11px}.roam-timeline-day-nav select{font-size:11px;padding:8px 2px}}
+
+/* V131: dedicated inspiration tab and visible independent page */
+.roam-inspiration-page-v131{padding:16px;min-width:0}
+.roam-inspiration-page-title h2{margin:0 0 6px;color:#203c60}
+.roam-inspiration-page-title p{font-size:13px;color:#5b718c;margin:0 0 12px}
+#roamInspirationPageV131 .roam-inspiration-v122{display:block;visibility:visible;margin:0;min-width:0}
+#tabs{overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+#tabs::-webkit-scrollbar{display:none}
+#tabs button{flex-shrink:0}
