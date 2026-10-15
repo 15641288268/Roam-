@@ -1,0 +1,11 @@
+/* V150 AI revision visual diff */
+.roam-v150-diff{margin:16px 0;padding:15px;border-radius:15px;background:#f4f8ff;border:1px solid #ccdef6;color:#213e60}
+.roam-v150-diff h3{font-size:17px;margin:0 0 10px;color:#183f70}
+.roam-v150-summary{font-size:13px;color:#365676;margin-bottom:10px}
+.roam-v150-day{margin:9px 0;border:1px solid #d9e5f3;border-radius:11px;background:white;overflow:hidden}
+.roam-v150-day summary{padding:11px;font-weight:650;color:#21456d;cursor:pointer}
+.roam-v150-change{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px;border-top:1px solid #e5edf6;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.roam-v150-change>div{background:#f5f7fa;padding:9px;border-radius:8px;color:#294360}
+.roam-v150-change>div:last-child{background:#eaf6ef;color:#1e6244}
+.roam-v150-diff .roam-v150-warning{padding:9px;background:#fff4e8;color:#87521c;border-radius:9px;margin:8px 0}
+@media(max-width:390px){.roam-v150-change{grid-template-columns:1fr}}
