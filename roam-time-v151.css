@@ -1,0 +1,12 @@
+/* V151: safe, confirm-first itinerary time conflict resolution */
+.roam-v151-box{margin:12px 0;padding:14px;border:1px solid #e8c887;border-radius:15px;background:#fff9ee;color:#553d21}
+.roam-v151-box h3{margin:0 0 7px;font-size:16px;color:#71491a}
+.roam-v151-box p{font-size:13px;line-height:1.6;margin:5px 0}
+.roam-v151-box button{margin:7px 7px 2px 0;background:#fff!important;color:#79501c!important;-webkit-text-fill-color:#79501c!important;border:1px solid #dfc294!important}
+.roam-v151-dialog{border:0;border-radius:19px;padding:22px;width:min(92vw,510px);max-height:85dvh;overflow:auto;background:white;color:#233f5e;box-shadow:0 16px 50px #102e4c44}
+.roam-v151-dialog::backdrop{background:#10253e80}
+.roam-v151-dialog h3{color:#21456b;margin-top:0}
+.roam-v151-dialog li{margin:8px 0;line-height:1.5}
+.roam-v151-dialog .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.roam-v151-dialog button{color:#224d7a!important;-webkit-text-fill-color:#224d7a!important;background:#e8f1fc!important}
+.roam-v151-dialog button.roam-v151-accept{background:#286ed3!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
