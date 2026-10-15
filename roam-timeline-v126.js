@@ -3,6 +3,21 @@
  let mode=localStorage.getItem('roam_plan_view_v126')==='timeline'?'timeline':'list';
  const minutes=t=>{const m=/^([01]\d|2[0-3]):([0-5]\d)$/.exec(String(t||''));return m?Number(m[1])*60+Number(m[2]):null};
  const clean=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ function movePlace(day,sourceId,targetId){
+  if(sourceId===targetId)return;
+  const ordered=(db.places||[]).filter(p=>Number(p.day)===day).slice().sort((a,b)=>(minutes(a.time)??99999)-(minutes(b.time)??99999));
+  const from=ordered.findIndex(p=>p.id===sourceId),to=ordered.findIndex(p=>p.id===targetId);
+  if(from<0||to<0)return;
+  const slots=ordered.map(p=>p.time||'');
+  const shifted=ordered.slice();shifted.splice(to,0,shifted.splice(from,1)[0]);
+  const affected=shifted.filter((p,i)=>p.time!==slots[i]);
+  const routeCount=(db.routes||[]).filter(r=>Number(r.day)===day).length;
+  const reservations=(db.bookings||[]).filter(b=>b.date&&db.start&&b.date===new Date(Date.parse(db.start+'T12:00:00Z')+(day-1)*86400000).toISOString().slice(0,10));
+  const msg='将「'+ordered[from].name+'」移动到「'+ordered[to].name+'」'+(from<to?'后':'前')+'。\\n\\n将沿用原时间轴的时间位置，预计修改 '+affected.length+' 个地点的开始时间。'+(routeCount?'\\n已有 '+routeCount+' 条交通路线需要重新核对；不自动编造新路线。':'')+(reservations.length?'\\n当天有 '+reservations.length+' 项预订，预订时间保持不变，请检查冲突。':'')+'\\n\\n确认应用调整吗？';
+  if(!confirm(msg))return;
+  shifted.forEach((p,i)=>{const original=db.places.find(x=>x.id===p.id);if(original){original.time=slots[i];original.order=i+1}});
+  persist();
+ }
  function build(){
   const host=document.getElementById('planList');if(!host)return;
   let controls=document.getElementById('roamPlanViewSwitchV126');
@@ -59,7 +74,18 @@
    const meta=document.createElement('small');meta.textContent=p._kind==='booking'?'📌 '+(p.type||'预订')+(p.endTime?' · 至 '+p.endTime:''):(p.type||'地点')+(p.note?' · '+p.note:'');
    body.append(title,meta);
    if(conflicts.has(i)){const warning=document.createElement('span');warning.className='roam-timeline-warning';warning.textContent='⚠ 与相邻活动开始时间相差不到30分钟';body.appendChild(warning)}
-   if(p._kind==='place'){const edit=document.createElement('button');edit.type='button';edit.className='secondary';edit.textContent='编辑时间 / 地点';edit.onclick=()=>{if(typeof editPlace==='function')editPlace(p.id)};body.appendChild(edit)}
+   if(p._kind==='place'){
+    row.dataset.placeId=p.id;row.draggable=true;row.title='电脑可拖动调整顺序；手机请使用上移/下移';
+    row.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',p.id);e.dataTransfer.effectAllowed='move'});
+    row.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move'});
+    row.addEventListener('drop',e=>{e.preventDefault();const source=e.dataTransfer.getData('text/plain');if(source)movePlace(day,source,p.id)});
+    const position=places.findIndex(x=>x.id===p.id);
+    for(const [label,offset] of [['↑ 上移',-1],['↓ 下移',1]]){
+     if(position+offset<0||position+offset>=places.length)continue;
+     const button=document.createElement('button');button.type='button';button.className='secondary';button.textContent=label;
+     button.onclick=()=>movePlace(day,p.id,places[position+offset].id);body.appendChild(button);
+    }
+    const edit=document.createElement('button');edit.type='button';edit.className='secondary';edit.textContent='编辑时间 / 地点';edit.onclick=()=>{if(typeof editPlace==='function')editPlace(p.id)};body.appendChild(edit)}
    row.append(time,marker,body);
    // Show travel segments between consecutive itinerary places (not bookings).
    if(p._kind==='place'){
@@ -93,7 +119,7 @@
     }else timeline.appendChild(row);
    }else timeline.appendChild(row);
   });
-  const note=document.createElement('p');note.className='muted';note.textContent='时间轴按开始时间排序；预订按日期匹配。红色提醒仅表示开始时间接近，未包含实际停留时长或交通耗时。';timeline.appendChild(note);
+  const note=document.createElement('p');note.className='muted';note.textContent='可拖动地点调整顺序（手机使用上移/下移）；调整后保留原时间位置，不会自动计算新路线。预订按日期匹配。红色提醒仅表示开始时间接近，未包含实际停留时长或交通耗时。';timeline.appendChild(note);
  }
  const previous=render;
  render=function(...args){const result=previous.apply(this,args);build();return result};
