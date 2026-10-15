@@ -195,3 +195,15 @@ dialog input:not([type="checkbox"]):not([type="radio"]),dialog select,dialog tex
 .roam-inspiration-controls select{width:auto;max-width:105px;min-height:37px;padding:5px!important}
 .roam-inspiration-controls button{min-height:37px;padding:7px 10px!important}
 @media(max-width:420px){.roam-inspiration-item{align-items:stretch;flex-direction:column}.roam-inspiration-controls{justify-content:flex-start}}
+
+/* V123 guide fusion dialog */
+.roam-guide-merge-dialog{width:min(92vw,580px);max-height:86dvh;overflow:auto;padding:19px!important;box-sizing:border-box}
+.roam-guide-merge-dialog *{box-sizing:border-box}
+.roam-guide-merge-dialog textarea{width:100%;max-width:100%;min-height:155px}
+.roam-guide-merge-dialog input[type=text],.roam-guide-merge-dialog input:not([type]){min-width:0;max-width:100%}
+.roam-guide-merge-dialog label{display:block;margin:12px 0}
+.roam-guide-merge-dialog #roamMergeCandidates{max-height:31dvh;overflow:auto;margin:12px 0}
+.roam-guide-merge-dialog .roam-merge-candidate{display:flex;align-items:center;gap:10px;margin:7px 0;padding:6px 8px;background:#f2f7fd;border-radius:12px}
+.roam-guide-merge-dialog .roam-merge-candidate input[type=checkbox]{flex:0 0 auto;width:20px;height:20px}
+.roam-guide-merge-dialog .roam-merge-candidate input[type=text]{flex:1 1 auto;width:100%;margin:0}
+#roamGuideMergeV123{margin:8px 0 13px;max-width:100%;white-space:normal}
