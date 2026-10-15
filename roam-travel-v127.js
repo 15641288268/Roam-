@@ -8,7 +8,7 @@
   const list=document.getElementById('planList');if(!list)return;
   let panel=document.getElementById('roamTravelModeV127');
   if(!panel){
-   panel=document.createElement('section');panel.id='roamTravelModeV127';panel.className='roam-travel-mode';
+   panel=document.createElement('div');panel.id='roamTravelModeV127';panel.className='roam-travel-mode';
    panel.innerHTML='<div class="roam-travel-head"><div><strong>🚶 旅行执行模式</strong><small>当天进度、下一站与预订</small></div><button type="button" id="roamTravelToggleV127" aria-expanded="false">开启</button></div><div id="roamTravelContentV127" hidden></div>';
    const controls=document.getElementById('roamPlanViewSwitchV126');(controls||list).before(panel);
    panel.querySelector('#roamTravelToggleV127').onclick=()=>{open=!open;draw()};
