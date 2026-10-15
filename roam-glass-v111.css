@@ -113,3 +113,38 @@ button.roam-date-edit.secondary{margin-left:auto;min-width:0;white-space:nowrap;
 .roam-date-footer input[type="date"]{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;flex:0 1 auto!important;padding:10px 12px!important;box-sizing:border-box!important;-webkit-appearance:none;appearance:none}
 .roam-date-footer #roamAddBlank{width:100%;max-width:100%;min-width:0}
 @media(max-width:600px){.roam-date-list-dialog{width:calc(100vw - 24px)!important;padding:18px!important}.roam-date-footer input[type="date"]{font-size:16px!important}}
+
+/* V117: universal mobile overflow containment, including Safari date fields */
+html,body{max-width:100%;overflow-x:clip}
+.wrap,main,section,.panel,.grid,.grid3,.form-grid,.project-panel,.plan-list,.plan-secondary,.actions,dialog{min-width:0;max-width:100%;box-sizing:border-box}
+.panel *,dialog *,section *{box-sizing:border-box}
+.panel input:not([type="checkbox"]):not([type="radio"]),.panel select,.panel textarea,
+dialog input:not([type="checkbox"]):not([type="radio"]),dialog select,dialog textarea{
+ max-width:100%!important;min-width:0!important;box-sizing:border-box!important;
+}
+.panel label,dialog label{min-width:0;max-width:100%}
+.roam-date-list-dialog{
+ width:min(590px,calc(100vw - 24px))!important;
+ max-width:calc(100vw - 24px)!important;
+ padding:18px!important;
+ overflow-x:clip!important;
+}
+.roam-date-list-dialog .roam-date-footer{width:100%!important;min-width:0!important;overflow:visible!important}
+.roam-date-list-dialog .roam-date-footer label{width:100%!important;overflow:visible!important;display:block!important}
+.roam-date-list-dialog #roamAddDate{
+ display:block!important;width:100%!important;max-width:100%!important;
+ min-width:0!important;min-height:48px!important;
+ padding:9px 12px!important;margin:8px 0 0!important;
+ font-size:16px!important;line-height:24px!important;
+ background:#fff!important;border:1px solid #cad8e9!important;
+ border-radius:16px!important;color:#20344e!important;
+ -webkit-appearance:auto!important;appearance:auto!important;
+}
+.roam-date-list-dialog #roamAddBlank{width:100%!important}
+.roam-day-description{min-width:0!important;overflow:hidden}
+.roam-date-heading>div{min-width:0}
+@media(max-width:650px){
+ .grid,.grid3,.form-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr))}
+ .roam-date-list-dialog{margin-inline:auto!important}
+ .roam-day-row{max-width:100%;min-width:0}
+}
