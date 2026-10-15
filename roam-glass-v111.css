@@ -330,3 +330,11 @@ nav#tabs button{display:flex!important;align-items:center;justify-content:center
  .grid:has(#aiTripStartV77){display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:13px!important}
  .grid:has(#aiTripStartV77)>label{width:100%!important;min-width:0!important}
 }
+
+/* V135: AI revision controls visible within draft card (global section{display:none} no longer applies) */
+#roamRevisionControlsV124{display:block!important;visibility:visible!important;width:100%;max-width:100%;box-sizing:border-box;margin:14px 0;padding:14px;border-radius:16px;background:#eaf3ff;color:#233d5d}
+#roamRevisionControlsV124 label{display:block;margin:10px 0;min-width:0}
+#roamRevisionControlsV124 select{width:100%;max-width:100%;min-width:0;box-sizing:border-box}
+#roamRevisionDayWrapV124[hidden]{display:none!important}
+#roamRevisionControlsV124 .roam-revision-lock{display:flex;align-items:center;gap:8px}
+#roamRevisionControlsV124 .roam-revision-lock input{width:18px;min-width:18px;flex:none}
