@@ -39,6 +39,7 @@ function decorate(){if(pending)return;pending=true;requestAnimationFrame(()=>{pe
 function init(){
  const list=document.getElementById('planList'),panel=document.getElementById('placeEditor');if(!list||!panel)return;
  current=tab();lastTrip=String(roamProjects?.active||'default');lastDay=Number(selectedPlanDay)||1;
+ const originalEdit=window.editPlace;if(typeof originalEdit==='function'){window.editPlace=function(id){const y=window.scrollY;originalEdit(id);sheet();window.scrollTo({top:y,behavior:'instant'})}}
  document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{remember();const t=b.dataset.tab;setTimeout(()=>{current=t;restore(t);decorate()},130)},true));
  const observer=new MutationObserver(decorate);observer.observe(list,{childList:true});observer.observe(panel,{attributes:true,attributeFilter:['hidden']});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close()});
