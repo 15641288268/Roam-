@@ -20,8 +20,11 @@ function openTripCalendarV105(){
   dlg.querySelector('#roamDayOverview').innerHTML=Array.from({length:total()},(_,i)=>row(i+1)).join('');
   dlg.querySelector('#roamDateSummary').textContent=db.start+' 开始 · 共 '+total()+' 天';
  }
- dlg.innerHTML='<div class="roam-date-heading"><div><h2>📅 行程日期总览</h2><p class="muted" id="roamDateSummary"></p></div><button type="button" class="secondary" id="roamDateClose" aria-label="关闭">✕</button></div><p class="muted">长按任意一天，然后拖到目标日期松手，即可交换两天的全部行程。也可以点击当天进入编辑。</p><div id="roamDayOverview" role="list" class="roam-day-overview"></div><div class="roam-date-footer"><label>添加空白日期<input type="date" id="roamAddDate" value="'+esc(db.start||'')+'"></label><button type="button" id="roamAddBlank">＋ 创建 / 查看日期</button><p class="muted">位置固定的机票及酒店预订不随日期交换，请单独核对。</p></div>';
+ dlg.innerHTML='<div class="roam-date-heading"><div><h2>📅 行程日期总览</h2><p class="muted" id="roamDateSummary"></p></div><button type="button" class="secondary" id="roamDateClose" aria-label="关闭">✕</button></div><p class="muted">长按任意一天，然后拖到目标日期松手，即可交换两天的全部行程。也可以点击当天进入编辑。</p><div id="roamDayOverview" role="list" class="roam-day-overview"></div><div class="roam-date-footer"><label class="roam-date-picker-label">添加空白日期<div class="roam-date-picker-shell"><span id="roamDateVisual">选择日期</span><span aria-hidden="true">▾</span><input type="date" id="roamAddDate" aria-label="添加空白日期" value="'+esc(db.start||'')+'"></div></label><button type="button" id="roamAddBlank">＋ 创建 / 查看日期</button><p class="muted">位置固定的机票及酒店预订不随日期交换，请单独核对。</p></div>';
  document.body.appendChild(dlg);
+ const dateInput=dlg.querySelector('#roamAddDate'),dateVisual=dlg.querySelector('#roamDateVisual');
+ const updateDateVisual=()=>{const date=dateInput.value;dateVisual.textContent=date?date.replace(/^(\\d{4})-(\\d{2})-(\\d{2})$/,(_,y,m,d)=>y+'年'+Number(m)+'月'+Number(d)+'日'):'选择日期'};
+ dateInput.addEventListener('change',updateDateVisual);updateDateVisual();
  dlg.querySelector('#roamDateClose').onclick=()=>dlg.close();
  dlg.querySelector('#roamAddBlank').onclick=()=>{try{roamAddBlankDateV105(dlg.querySelector('#roamAddDate').value);draw()}catch(e){alert(e.message)}};
  const list=dlg.querySelector('#roamDayOverview');
