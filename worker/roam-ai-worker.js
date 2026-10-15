@@ -32,7 +32,17 @@ async function textAssistantV68(payload,env){
   p.days=p.days.map((d,i)=>({...d,day:Number(d.day)||i+1,places:(Array.isArray(d.places)?d.places:Array.isArray(d.activities)?d.activities:[]).map(x=>typeof x==='string'?{name:x,time:'09:00',activity:''}:{...x,name:x.name||x.place||x.title||'',activity:x.activity||x.description||'',time:/^[0-9]{2}:[0-9]{2}$/.test(x.time||'')?x.time:'09:00'}).filter(x=>x.name)})).filter(d=>d.places.length);
   return p;
  };
- const accept=(value,provider)=>{const parsed=repairPlan(parseAIJSON(typeof value==='string'?value:JSON.stringify(value||'')));if(!parsed)return null;if(mode==='plan'&&(!Array.isArray(parsed.days)||!parsed.days.length))return null;return {result:parsed,provider}};
+ const destinationCheck=(p)=>{
+  if(mode!=='plan'||!/西班牙|Spain|Espa[nñ]a/i.test(question))return true;
+  const foreign=/(日本|东京|京都|大阪|Tokyo|Japan|Kyoto|Osaka|意大利|罗马|Rome|Roma|Italy|法国|巴黎|France|Paris|德国|柏林|Germany|Berlin|葡萄牙|里斯本|Portugal|Lisbon)/i;
+  const excludeBarcelona=/巴塞罗那.{0,15}(不玩|不去|不用安排|不安排|去过)|(?:不玩|不去|不用安排|不安排).{0,15}巴塞罗那/.test(question);
+  const forbidden=/(巴塞罗那|Barcelona|圣家堂|Sagrada Fam[ií]lia|古埃尔公园)/i;
+  return p.days.every(d=>(d.places||[]).every(x=>{
+   const location=[x.name,x.city,x.country,x.address].filter(Boolean).join(' ');
+   return !foreign.test(location)&&!(excludeBarcelona&&forbidden.test(location));
+  }));
+ };
+ const accept=(value,provider)=>{const parsed=repairPlan(parseAIJSON(typeof value==='string'?value:JSON.stringify(value||'')));if(!parsed)return null;if(mode==='plan'&&(!Array.isArray(parsed.days)||!parsed.days.length||!destinationCheck(parsed)))return null;return {result:parsed,provider}};
  async function limited(label,url,options,parseReply,ms=11500,retries=0){
   for(let attempt=0;attempt<=retries;attempt++){
   const controller=new AbortController();
