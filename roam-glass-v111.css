@@ -348,3 +348,9 @@ nav#tabs button{display:flex!important;align-items:center;justify-content:center
 .roam-inspiration-form-v139 label{display:block;margin:0 0 11px;font-size:13px}
 .roam-inspiration-form-v139 input,.roam-inspiration-form-v139 textarea{display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;margin-top:5px}
 .roam-inspiration-item{min-width:0;flex-wrap:wrap}
+
+/* V141: transit legs embedded in itinerary timeline */
+.roam-timeline-route-v141{margin:3px 0 13px 58px;padding:11px 13px;border-left:3px dashed #91b8dc;border-radius:0 13px 13px 0;background:rgba(230,241,254,.75);display:flex;align-items:center;justify-content:space-between;gap:9px;min-width:0}
+.roam-timeline-route-info-v141{font-size:12px;line-height:1.6;color:#3d6388;min-width:0;overflow-wrap:anywhere}
+.roam-timeline-route-v141 button{flex:none;font-size:12px!important;padding:7px 9px!important}
+@media(max-width:390px){.roam-timeline-route-v141{margin-left:46px;flex-wrap:wrap}}
