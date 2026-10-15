@@ -24,8 +24,11 @@
   const daySelect=root.querySelector('#roamRevisionDayV124');
   daySelect.innerHTML=days.map((d,i)=>'<option value="'+(i+1)+'">第 '+(i+1)+' 天</option>').join('');
   state.day=Math.min(Math.max(1,state.day),Math.max(1,days.length));daySelect.value=String(state.day);
-  root.querySelector('#roamRevisionDayWrapV124').hidden=state.scope==='all';
+  const allDays=state.scope==='all';
+  root.querySelector('#roamRevisionDayWrapV124').hidden=allDays;
   const locks=root.querySelector('#roamRevisionLocksV124');
+  locks.hidden=allDays;
+  if(allDays){locks.innerHTML='';return;}
   if(!days.length){locks.innerHTML='<small>先生成 AI 行程草稿，再选择需要锁定的活动。</small>';return}
   const day=days[state.day-1],places=Array.isArray(day?.places)?day.places:[];
   locks.innerHTML='<strong>第 '+state.day+' 天固定活动</strong>'+(places.length?places.map(p=>{
