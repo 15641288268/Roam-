@@ -1,0 +1,12 @@
+/* V152 — context-aware home summary, no separate execution mode */
+.roam-v152-home{margin:12px 0 18px;padding:19px;border-radius:19px;background:linear-gradient(135deg,#eef5ff,#f8fbff);border:1px solid #d2e3f6;color:#203f61;box-shadow:0 5px 20px #1a4a7a0d}
+.roam-v152-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.roam-v152-eyebrow{font-size:11px;letter-spacing:.12em;color:#496b91;font-weight:750}
+.roam-v152-home h2{margin:6px 0;font-size:21px;line-height:1.35;color:#183e68}
+.roam-v152-home p{margin:7px 0;color:#3b5b7b;font-size:14px;line-height:1.5}
+.roam-v152-badge{background:#e0edff;border-radius:99px;padding:6px 10px;font-size:12px;color:#215188;white-space:nowrap}
+.roam-v152-stats{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.roam-v152-stats span{background:#fff;border:1px solid #dbe7f6;border-radius:10px;padding:8px 10px;font-size:13px;color:#294b70}
+.roam-v152-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.roam-v152-actions button{background:#e1edfc!important;color:#1d4c7d!important;-webkit-text-fill-color:#1d4c7d!important;border:1px solid #c8dcf2!important}
+.roam-v152-actions button:first-child{background:#276ed2!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
