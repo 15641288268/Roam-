@@ -5,10 +5,13 @@
  function mount(){
   const follow=document.getElementById('aiFollow');
   if(!follow||document.getElementById('roamRevisionControlsV124'))return;
-  const wrap=document.createElement('section');wrap.id='roamRevisionControlsV124';wrap.className='roam-revision-controls';
+  const wrap=document.createElement('div');wrap.id='roamRevisionControlsV124';wrap.className='roam-revision-controls';
   wrap.innerHTML='<h4>🔒 AI 修改范围</h4><label>允许修改<select id="roamRevisionScopeV124"><option value="day">指定某一天（推荐）</option><option value="all">全部日期（保留目的地及日期）</option></select></label><label id="roamRevisionDayWrapV124">选择日期<select id="roamRevisionDayV124"></select></label><div class="roam-revision-locks" id="roamRevisionLocksV124"></div><p class="muted">勾选的活动将保持原时间和内容。AI 只能修改所选范围；修改结果先作为草稿，不会直接覆盖正式行程。</p>';
-  follow.closest('label')?.after(wrap);
-  if(!wrap.isConnected)follow.after(wrap);
+  const aiPanel=follow.closest('.panel');
+  const feedback=document.getElementById('aiFeedback');
+  if(feedback)feedback.before(wrap);
+  else if(aiPanel)aiPanel.appendChild(wrap);
+  else follow.after(wrap);
   wrap.querySelector('#roamRevisionScopeV124').onchange=e=>{state.scope=e.target.value;update()};
   wrap.querySelector('#roamRevisionDayV124').onchange=e=>{state.day=Number(e.target.value)||1;update()};
   wrap.querySelector('#roamRevisionLocksV124').onchange=e=>{if(e.target.matches('input[data-lock]'))state.locks[e.target.dataset.lock]=e.target.checked};
