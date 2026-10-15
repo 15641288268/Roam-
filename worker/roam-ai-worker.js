@@ -30,14 +30,7 @@ async function textAssistantV68(payload,env){
   }catch(e){errors.push(label+(controller.signal.aborted?' 响应超时（'+Math.round(ms/1000)+'秒）':': '+String(e.message||e).slice(0,100)));return null}
   finally{clearTimeout(timer)}
  }
- // Prioritize the fast text-only provider, then the two existing free fallbacks.
- if(env.GROQ_API_KEY){
-  const result=await limited('Groq','https://api.groq.com/openai/v1/chat/completions',{
-   method:'POST',headers:{Authorization:'Bearer '+env.GROQ_API_KEY,'Content-Type':'application/json'},
-   body:JSON.stringify({model:'openai/gpt-oss-120b',messages:[{role:'user',content:prompt}],response_format:{type:'json_object'},temperature:0.2,max_tokens:4200})
-  },d=>d.choices?.[0]?.message?.content);
-  if(result)return result;
- }
+ // Provider priority: Gemini → OpenRouter → Groq → Cloudflare Workers AI.
  if(env.GEMINI_API_KEY){
   const result=await limited('Gemini','https://generativelanguage.googleapis.com/v1beta/models/'+MODEL+':generateContent',{
    method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':env.GEMINI_API_KEY},
@@ -49,6 +42,13 @@ async function textAssistantV68(payload,env){
   const result=await limited('OpenRouter','https://openrouter.ai/api/v1/chat/completions',{
    method:'POST',headers:{Authorization:'Bearer '+env.OPENROUTER_API_KEY,'Content-Type':'application/json','HTTP-Referer':'https://15641288268.github.io/Roam-/','X-Title':'Roam Travel Planner'},
    body:JSON.stringify({model:'openrouter/free',messages:[{role:'user',content:prompt}],response_format:{type:'json_object'},temperature:0.2,max_tokens:6500})
+  },d=>d.choices?.[0]?.message?.content);
+  if(result)return result;
+ }
+ if(env.GROQ_API_KEY){
+  const result=await limited('Groq','https://api.groq.com/openai/v1/chat/completions',{
+   method:'POST',headers:{Authorization:'Bearer '+env.GROQ_API_KEY,'Content-Type':'application/json'},
+   body:JSON.stringify({model:'openai/gpt-oss-120b',messages:[{role:'user',content:prompt}],response_format:{type:'json_object'},temperature:0.2,max_tokens:4200})
   },d=>d.choices?.[0]?.message?.content);
   if(result)return result;
  }
