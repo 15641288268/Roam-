@@ -1,4 +1,4 @@
-name: Worker syntax check
+name: App and Worker syntax check
 on:
   push:
     branches: [main]
@@ -11,3 +11,27 @@ jobs:
       - uses: actions/checkout@v4
       - name: Check Worker JavaScript syntax
         run: node --check worker/roam-ai-worker.js
+      - name: Check inline application JavaScript syntax
+        run: |
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          class Scripts(HTMLParser):
+              def __init__(self):
+                  super().__init__(); self.active=False; self.parts=[]; self.scripts=[]
+              def handle_starttag(self,tag,attrs):
+                  if tag=='script':
+                      self.active=True; self.parts=[]
+              def handle_data(self,data):
+                  if self.active: self.parts.append(data)
+              def handle_endtag(self,tag):
+                  if tag=='script' and self.active:
+                      self.scripts.append(''.join(self.parts)); self.active=False
+          parser=Scripts()
+          parser.feed(Path('index.html').read_text())
+          folder=Path('/tmp/roam-inline-scripts'); folder.mkdir(exist_ok=True)
+          for i,script in enumerate(parser.scripts):
+              (folder/f'script-{i}.js').write_text(script)
+          print(f'Extracted {len(parser.scripts)} inline scripts')
+          PY
+          for script in /tmp/roam-inline-scripts/*.js; do node --check "$script" || exit 1; done
