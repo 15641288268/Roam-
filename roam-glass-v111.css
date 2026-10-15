@@ -251,3 +251,27 @@ dialog input:not([type="checkbox"]):not([type="radio"]),dialog select,dialog tex
 .roam-timeline-row.conflict .roam-timeline-card{border-color:#e3a4a4;background:#fff6f6}
 .roam-timeline-warning{display:block;margin-top:8px;color:#a83f3f;font-size:12px}
 @media(max-width:390px){.roam-timeline-row{grid-template-columns:43px 17px minmax(0,1fr);gap:6px}.roam-timeline-card{padding:10px}.roam-plan-view-switch{padding:8px}}
+
+/* V127 travel execution mode */
+.roam-travel-mode{margin:12px 0;padding:14px;border:1px solid #cfe0f0;border-radius:20px;background:rgba(255,255,255,.9);color:#233e5b;min-width:0}
+.roam-travel-head,.roam-travel-summary,.roam-travel-stop,.roam-travel-booking{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.roam-travel-head strong,.roam-travel-head small,.roam-travel-summary strong,.roam-travel-summary small{display:block}
+.roam-travel-head small,.roam-travel-summary small{color:#6a7d91;font-size:12px;margin-top:4px}
+.roam-travel-head button{border-radius:12px;min-width:72px}
+#roamTravelContentV127{margin-top:14px}
+#roamTravelContentV127[hidden]{display:none!important}
+.roam-travel-summary{flex-wrap:wrap}
+.roam-travel-next{background:#eaf4ff;color:#255a93;padding:12px;margin:12px 0;border-radius:14px;font-weight:650}
+.roam-travel-stop{padding:12px 0;border-bottom:1px solid #e2ebf5;min-width:0}
+.roam-travel-stop-name{min-width:0;overflow-wrap:anywhere}
+.roam-travel-stop-name strong,.roam-travel-stop-name small{display:block}
+.roam-travel-stop-name small{color:#6a7d91;font-size:12px;margin-top:4px}
+.roam-travel-stop-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.roam-travel-stop-actions select{width:auto;min-width:90px;max-width:120px;padding:7px!important}
+.roam-travel-stop-actions button{padding:8px!important;white-space:nowrap}
+.roam-travel-stop.done .roam-travel-stop-name{opacity:.57;text-decoration:line-through}
+.roam-travel-stop.active{background:#f2f8ff}
+.roam-travel-stop.skipped{opacity:.65}
+.roam-travel-booking{border-radius:12px;padding:10px;background:#f1f6fd;margin:7px 0;overflow-wrap:anywhere}
+.roam-travel-mode h4{margin:18px 0 9px}
+@media(max-width:450px){.roam-travel-stop{align-items:stretch;flex-direction:column}.roam-travel-stop-actions{justify-content:flex-start}.roam-travel-booking{align-items:flex-start;flex-wrap:wrap}}
