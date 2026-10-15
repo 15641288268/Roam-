@@ -5,7 +5,9 @@ function parseAIJSON(text){
  if(start>=0&&end>start)candidates.push(raw.slice(start,end+1));
  for(const candidate of candidates){try{const obj=JSON.parse(candidate);if(obj&&typeof obj==='object'&&!Array.isArray(obj))return obj}catch{}}
  // Recover a complete days array when the response was truncated mid-JSON.
- const m=raw.match(new RegExp('"days"\\s*:\\s*\\['));
+ const daysKey=raw.indexOf('"days"');
+ const bracket=daysKey>=0?raw.indexOf('[',daysKey):-1;
+ const m=bracket>=0?{index:daysKey}:null;
  if(m){const start=raw.indexOf('[',m.index),items=[];let depth=0,inString=false,escaped=false,objStart=-1;
   for(let i=start+1;i<raw.length;i++){const c=raw[i];if(inString){if(escaped)escaped=false;else if(c==='\\\\')escaped=true;else if(c==='"')inString=false;continue}
    if(c==='"'){inString=true;continue}if(c==='{'){if(depth++===0)objStart=i}else if(c==='}'&&depth>0){if(--depth===0&&objStart>=0){try{items.push(JSON.parse(raw.slice(objStart,i+1)))}catch{}objStart=-1}}}
@@ -27,7 +29,7 @@ async function textAssistantV68(payload,env){
   if(mode!=='plan'||!p||typeof p!=='object')return p;
   if(!Array.isArray(p.days)&&Array.isArray(p.itinerary))p.days=p.itinerary;
   if(!Array.isArray(p.days))return p;
-  p.days=p.days.map((d,i)=>({...d,day:Number(d.day)||i+1,places:(Array.isArray(d.places)?d.places:Array.isArray(d.activities)?d.activities:[]).map(x=>typeof x==='string'?{name:x,time:'09:00',activity:''}:{...x,name:x.name||x.place||x.title||'',activity:x.activity||x.description||'',time:/^\\d{2}:\\d{2}$/.test(x.time||'')?x.time:'09:00'}).filter(x=>x.name)})).filter(d=>d.places.length);
+  p.days=p.days.map((d,i)=>({...d,day:Number(d.day)||i+1,places:(Array.isArray(d.places)?d.places:Array.isArray(d.activities)?d.activities:[]).map(x=>typeof x==='string'?{name:x,time:'09:00',activity:''}:{...x,name:x.name||x.place||x.title||'',activity:x.activity||x.description||'',time:/^[0-9]{2}:[0-9]{2}$/.test(x.time||'')?x.time:'09:00'}).filter(x=>x.name)})).filter(d=>d.places.length);
   return p;
  };
  const accept=(value,provider)=>{const parsed=repairPlan(parseAIJSON(typeof value==='string'?value:JSON.stringify(value||'')));if(!parsed)return null;if(mode==='plan'&&(!Array.isArray(parsed.days)||!parsed.days.length))return null;return {result:parsed,provider}};
