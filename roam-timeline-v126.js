@@ -31,7 +31,24 @@
   }
   const heading=document.createElement('div');heading.className='roam-timeline-heading';
   heading.innerHTML='<strong>第 '+day+' 天 · '+clean(date)+'</strong><small>'+places.length+' 个地点 · '+bookings.length+' 项有时间的预订</small>';
-  timeline.replaceChildren(heading);
+  // Timeline needs its own day navigation: the original day selector lives inside hidden #planList.
+  const maxDay=Math.max(1,Number(db.days)||1,...(db.places||[]).map(p=>Number(p.day)||1));
+  const navigation=document.createElement('div');navigation.className='roam-timeline-day-nav';
+  const prev=document.createElement('button');prev.type='button';prev.textContent='‹ 前一天';prev.disabled=day<=1;
+  const next=document.createElement('button');next.type='button';next.textContent='后一天 ›';next.disabled=day>=maxDay;
+  const select=document.createElement('select');select.setAttribute('aria-label','选择时间轴日期');
+  for(let i=1;i<=maxDay;i++){
+   const option=document.createElement('option');option.value=String(i);
+   if(Number.isFinite(start)){option.textContent='第 '+i+' 天 · '+new Date(start+(i-1)*86400000).toISOString().slice(0,10)}
+   else option.textContent='第 '+i+' 天';
+   select.appendChild(option);
+  }
+  select.value=String(day);
+  prev.onclick=()=>changePlanDay(day-1);
+  next.onclick=()=>changePlanDay(day+1);
+  select.onchange=()=>changePlanDay(Number(select.value));
+  navigation.append(prev,select,next);
+  timeline.replaceChildren(navigation,heading);
   if(!items.length){const empty=document.createElement('p');empty.className='muted';empty.textContent='当天没有活动。可以在列表视图中添加地点。';timeline.appendChild(empty);return}
   items.forEach((p,i)=>{
    const row=document.createElement('div');row.className='roam-timeline-row'+(conflicts.has(i)?' conflict':'')+(p._kind==='booking'?' booking':'');
