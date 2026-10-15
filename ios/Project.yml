@@ -1,0 +1,27 @@
+name: Roam
+options:
+  bundleIdPrefix: com.roamtravel
+  deploymentTarget:
+    iOS: "15.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+targets:
+  Roam:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.roamtravel.personal
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Manual
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Roam
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIRequiresFullScreen: YES
+        INFOPLIST_KEY_NSPhotoLibraryUsageDescription: "选择旅行照片及路线截图"
+        INFOPLIST_KEY_NSCameraUsageDescription: "拍摄旅行照片及凭证"
+        INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription: "保存旅行相关图片"
+        SUPPORTS_MACCATALYST: NO
