@@ -207,3 +207,13 @@ dialog input:not([type="checkbox"]):not([type="radio"]),dialog select,dialog tex
 .roam-guide-merge-dialog .roam-merge-candidate input[type=checkbox]{flex:0 0 auto;width:20px;height:20px}
 .roam-guide-merge-dialog .roam-merge-candidate input[type=text]{flex:1 1 auto;width:100%;margin:0}
 #roamGuideMergeV123{margin:8px 0 13px;max-width:100%;white-space:normal}
+
+/* V124 AI revision guardrails */
+.roam-revision-controls{margin:12px 0;padding:15px;border-radius:19px;background:rgba(239,246,255,.91);border:1px solid #cbdcf0;color:#203b59;min-width:0}
+.roam-revision-controls h4{margin:0 0 12px;font-size:16px}
+.roam-revision-controls>label{display:block;margin:9px 0}
+.roam-revision-controls select{display:block;width:100%;max-width:100%;min-width:0;margin-top:6px}
+.roam-revision-locks{margin:12px 0;padding:10px;border-radius:13px;background:#fff}
+.roam-revision-lock{display:flex;align-items:center;gap:9px;padding:6px 0;font-size:14px}
+.roam-revision-lock input{width:18px;height:18px;flex:0 0 18px}
+.roam-revision-controls .muted{font-size:12px;line-height:1.5}
