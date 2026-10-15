@@ -170,3 +170,11 @@ dialog input:not([type="checkbox"]):not([type="radio"]),dialog select,dialog tex
 .roam-history-item>div{min-width:0;overflow-wrap:anywhere}
 .roam-history-item small{display:block;color:#61738b;margin-top:4px}
 .roam-history-item button{flex:0 0 auto}
+
+/* V121: explicit AI change review before import */
+.roam-ai-diff-v121{padding:13px 15px;margin:12px 0;background:rgba(231,241,254,.76);border:1px solid #c9dbee;border-radius:17px;color:#1d3453;max-height:35dvh;overflow:auto}
+.roam-ai-diff-v121 h4{margin:0 0 8px;font-size:16px}
+.roam-ai-diff-v121 p{margin:7px 0;line-height:1.5}
+.roam-ai-diff-v121 details{margin:9px 0}
+.roam-ai-diff-v121 summary{cursor:pointer;font-weight:650;color:#25588e}
+.roam-ai-diff-v121 ul{margin:7px 0 0;padding-left:20px;font-size:13px;line-height:1.7}
