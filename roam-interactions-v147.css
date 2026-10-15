@@ -1,0 +1,15 @@
+/* V147 — compact progressive disclosure for itinerary cards */
+.trip-stop{position:relative;transition:box-shadow .2s}
+.trip-stop .stop-head{cursor:pointer}
+.trip-stop .roam-fold-toggle{margin-left:auto;flex-shrink:0;background:#eaf2fc!important;color:#244b78!important;-webkit-text-fill-color:#244b78!important;border:1px solid #d6e4f3!important;border-radius:12px;padding:8px 11px;font-size:13px}
+.trip-stop.roam-collapsed .stop-time,.trip-stop.roam-collapsed .stop-meta,.trip-stop.roam-collapsed .stop-hours,.trip-stop.roam-collapsed .stop-toolbar{display:none!important}
+.trip-stop.roam-collapsed{padding-bottom:12px}
+.trip-stop .roam-compact-time{display:none;font-size:13px;color:#34577c;margin:8px 0 0 46px}
+.trip-stop.roam-collapsed .roam-compact-time{display:block}
+.roam-quick-add{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:calc(106px + env(safe-area-inset-bottom));width:51px;height:51px;border-radius:50%;z-index:900;background:#2476ec!important;color:white!important;-webkit-text-fill-color:white!important;box-shadow:0 7px 20px #235b9b55;font-size:29px;padding:0}
+.roam-quick-sheet{position:fixed;inset:0;z-index:1200;background:#0d203c55;display:flex;align-items:flex-end;justify-content:center}
+.roam-quick-sheet[hidden]{display:none}
+.roam-quick-sheet-inner{background:#fff;border-radius:24px 24px 0 0;padding:20px 18px calc(24px + env(safe-area-inset-bottom));width:min(100%,600px);box-shadow:0 -8px 32px #173b5b22}
+.roam-quick-sheet-inner button{display:block;width:100%;margin:8px 0;text-align:left;background:#edf3fb!important;color:#203f62!important;-webkit-text-fill-color:#203f62!important}
+.roam-quick-sheet-inner h3{color:#1d3553}
+@media(max-width:390px){.trip-stop .roam-fold-toggle{padding:7px;font-size:12px}}
