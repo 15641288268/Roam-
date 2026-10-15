@@ -52,3 +52,26 @@ body > header #roamVersionBadge{
   color:#fff!important;
   text-shadow:none;
 }
+
+/* V113 — light frosted title bar to match journey cards */
+body > header {
+ background:linear-gradient(112deg,rgba(255,255,255,.94),rgba(232,241,254,.90) 56%,rgba(222,235,250,.88))!important;
+ color:#192d48!important;
+ border:1px solid rgba(255,255,255,.82)!important;
+ box-shadow:0 8px 26px rgba(45,77,118,.10)!important;
+ backdrop-filter:blur(25px) saturate(150%);
+ -webkit-backdrop-filter:blur(25px) saturate(150%);
+}
+body > header::before {
+ background:linear-gradient(105deg,rgba(255,255,255,.22),rgba(223,235,251,.08))!important;
+}
+body > header h1,body > header h1 span:not(#roamVersionBadge) {
+ color:#172b46!important;text-shadow:none!important;
+}
+body > header p {color:#52657c!important;text-shadow:none!important;opacity:1!important}
+body > header #roamVersionBadge {
+ background:rgba(45,118,220,.09)!important;
+ border:1px solid rgba(55,117,205,.18)!important;
+ color:#24599c!important;
+ text-shadow:none!important;
+}
