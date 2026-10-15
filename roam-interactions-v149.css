@@ -1,0 +1,12 @@
+/* V149 mobile interaction refinement */
+#placeEditor.roam-v149-sheet{position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;z-index:1402!important;max-height:85dvh!important;overflow-y:auto!important;overscroll-behavior:contain;border-radius:24px 24px 0 0!important;margin:0!important;padding:24px 18px calc(22px + env(safe-area-inset-bottom))!important;box-shadow:0 -12px 50px #0c294a33!important;background:#fff!important}
+#placeEditor.roam-v149-sheet[hidden]{display:none!important}
+.roam-v149-backdrop{position:fixed;inset:0;z-index:1401;background:#10233c70}
+.roam-v149-backdrop[hidden]{display:none!important}
+.roam-v149-swipe-actions{display:none;gap:8px;flex-wrap:wrap;margin:8px 0;padding:8px;border-radius:12px;background:#eff5fc}
+.trip-stop.roam-v149-swiped .roam-v149-swipe-actions{display:flex}
+.roam-v149-swipe-actions button{background:#e1ebfa!important;color:#21466f!important;-webkit-text-fill-color:#21466f!important;font-size:13px}
+.roam-v149-swipe-actions button.danger{background:#fff0f2!important;color:#a32c40!important;-webkit-text-fill-color:#a32c40!important}
+.roam-v149-sheet-title{display:flex;justify-content:space-between;align-items:center}
+.roam-v149-sheet-title button{background:#eaf1fb!important;color:#21466f!important;-webkit-text-fill-color:#21466f!important}
+body.roam-v149-modal-open{overflow:hidden}
