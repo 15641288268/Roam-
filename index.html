@@ -639,7 +639,7 @@ function shortPlusReferenceV109(){
 }
 function decodeShortPlusV109(raw){
  const text=String(raw||'').trim().toUpperCase();
- const m=text.match(/(?:^|[^23456789CFGHJMPQRVWX])([23456789CFGHJMPQRVWX]{2,6})\\+([23456789CFGHJMPQRVWX]{2,})(?=$|[^23456789CFGHJMPQRVWX])/);
+ const m=text.match(/(?:^|[^23456789CFGHJMPQRVWX])([23456789CFGHJMPQRVWX]{2,6})\+([23456789CFGHJMPQRVWX]{2,})(?=$|[^23456789CFGHJMPQRVWX])/);
  if(!m)return null;const ref=shortPlusReferenceV109();if(!ref)return null;
  const missing=8-m[1].length;if(missing<=0||missing%2)return null;
  const alphabet='23456789CFGHJMPQRVWX',weights=[20,1,.05,.0025,.000125];
