@@ -302,3 +302,8 @@ dialog input:not([type="checkbox"]):not([type="radio"]),dialog select,dialog tex
 #tabs{overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 #tabs::-webkit-scrollbar{display:none}
 #tabs button{flex-shrink:0}
+
+/* V132: keep all six navigation tabs on exactly one row, including iPhone */
+nav#tabs{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:4px!important;flex-wrap:nowrap!important;overflow:visible!important;width:100%;max-width:100%;box-sizing:border-box;padding:5px!important;min-width:0}
+nav#tabs button{display:flex!important;align-items:center;justify-content:center;flex:initial!important;width:100%!important;min-width:0!important;max-width:100%!important;min-height:43px!important;padding:7px 1px!important;margin:0!important;font-size:clamp(10px,2.8vw,13px)!important;letter-spacing:-.25px;white-space:nowrap!important;overflow:hidden;text-overflow:clip;border-radius:12px!important}
+@media(max-width:380px){nav#tabs{gap:2px!important;padding:4px!important}nav#tabs button{font-size:10px!important;letter-spacing:-.45px;min-height:41px!important}}
