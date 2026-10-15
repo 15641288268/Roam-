@@ -29,7 +29,7 @@ function dayLabel(places,trip){
  return uniq.length?uniq.map((x,i)=>(i===0&&x.country?x.country+' · ':'')+x.city).join(' → '):'城市待确认';
 }
 function patch(){
- const db=window.db;if(!db)return;
+ const db=window.roamCityGetDb?.();if(!db)return;
  const trip=db.destination||'';
  document.querySelectorAll('#planList .trip-stop[data-place-id]').forEach(card=>{
   const p=(db.places||[]).find(x=>String(x.id)===card.dataset.placeId);
@@ -49,12 +49,12 @@ function patch(){
  if(header){
   let sub=header.parentElement.querySelector('.roam-day-city-v156');
   if(!sub){sub=document.createElement('div');sub.className='roam-day-city-v156';header.after(sub)}
-  const day=Number(window.selectedPlanDay)||1;
+  const day=Number(window.roamCityGetDay?.())||1;
   const val='🌐 '+dayLabel((db.places||[]).filter(p=>Number(p.day)===day),trip);
   if(sub.textContent!==val)sub.textContent=val;
  }
  document.querySelectorAll('#aiDays .ai-day').forEach((card,i)=>{
-  const day=window.lastAIPlanV68?.days?.[i]||window.aiPlanV68?.days?.[i];
+  const day=window.roamCityGetDraft?.()?.days?.[i];
   const title=card.querySelector('b');if(!title)return;
   let sub=card.querySelector('.roam-ai-city-v156');
   if(!sub){sub=document.createElement('div');sub.className='roam-ai-city-v156';title.after(sub)}
