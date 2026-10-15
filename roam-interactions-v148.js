@@ -2,10 +2,10 @@
    All alerts are read-only: never rewrite times or bookings without confirmation. */
 (()=>{'use strict';
 const minutes=t=>{const m=String(t||'').match(/^(\d{1,2}):(\d{2})$/);return m?Number(m[1])*60+Number(m[2]):null};
-const trip=()=>String(window.roamProjects?.active||'default');
+const trip=()=>String(roamProjects?.active||'default');
 let currentTrip=trip(),focusId=null,backScroll=0;
-function dayCount(){return Math.max(1,Number(window.db?.days)||1,...(window.db?.places||[]).map(x=>Number(x.day)||1))}
-function dayChange(step){const n=Math.max(1,Math.min(dayCount(),(Number(window.selectedPlanDay)||1)+step));if(n===(Number(window.selectedPlanDay)||1))return;window.changePlanDay?.(n)}
+function dayCount(){return Math.max(1,Number(db?.days)||1,...(db?.places||[]).map(x=>Number(x.day)||1))}
+function dayChange(step){const n=Math.max(1,Math.min(dayCount(),(Number(selectedPlanDay)||1)+step));if(n===(Number(selectedPlanDay)||1))return;window.changePlanDay?.(n)}
 function addDaySwipe(){
  for(const id of ['planList','mapBox']){
   const el=document.getElementById(id);if(!el||el.dataset.roamSwipe148)return;el.dataset.roamSwipe148='1';
@@ -29,13 +29,13 @@ function scrollToPlace(){
  if(row){row.scrollIntoView({behavior:'smooth',block:'center'});row.style.outline='2px solid #4088e9';setTimeout(()=>{row.style.outline=''},1800)}
 }
 function timeAlerts(){
- const list=document.getElementById('planList');if(!list||!window.db)return;
- const d=Number(window.selectedPlanDay)||1;
- const ps=(window.db.places||[]).filter(x=>Number(x.day)===d).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||'')));
+ const list=document.getElementById('planList');if(!list||!db)return;
+ const d=Number(selectedPlanDay)||1;
+ const ps=(db.places||[]).filter(x=>Number(x.day)===d).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||'')));
  for(let i=1;i<ps.length;i++){
   const prev=ps[i-1],next=ps[i],a=minutes(prev.time),b=minutes(next.time);
   if(a===null||b===null)continue;
-  const leg=(window.db.routes||[]).find(r=>Number(r.day)===d&&r.from===prev.name&&r.to===next.name);
+  const leg=(db.routes||[]).find(r=>Number(r.day)===d&&r.from===prev.name&&r.to===next.name);
   const travel=Number(leg?.minutes)||0;
   const stay=Number(prev.durationMinutes||prev.stayMinutes||0);
   if(!travel&&!stay)continue;
