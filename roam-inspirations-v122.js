@@ -41,7 +41,7 @@
    if(btn.dataset.action==='remove'){if(!confirm('从灵感库删除「'+item.name+'」？不会删除行程里的地点。'))return;items().splice(index,1);persist();redraw();return}
    const day=Number(row.querySelector('select').value)||1;
    if(db.places.some(p=>Number(p.day)===day&&normalized(p.name)===normalized(item.name)))return alert('这一天已经安排了该地点');
-   db.places.push({id:uid(),day,time:'',name:item.name,english:'',type:'景点',cost:0,currency:db.currency,note:item.source?'灵感来源：'+item.source:''});
+   db.places.push({id:uid(),day,time:'',name:item.name,english:item.english||'',address:item.address||'',googleUrl:item.googleUrl||'',website:item.website||'',hours:item.hours||'',type:'景点',cost:0,currency:db.currency,note:[item.note,item.source?'灵感来源：'+item.source:''].filter(Boolean).join('；')});
    db.days=Math.max(Number(db.days)||1,day);persist();alert('已将「'+item.name+'」加入第 '+day+' 天。');
   };
   refresh=redraw;redraw();
