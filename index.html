@@ -1051,7 +1051,7 @@ async function aiGenerateV68(revise=false){
  if(!button)return;
  const old=button.textContent;
  button.disabled=true;button.textContent='⏳ 正在联系 AI…';
- if(status)status.textContent='正在连接网络 AI：优先 Groq，失败时自动切换 Gemini、OpenRouter；最多等待约44秒。';
+ if(status)status.textContent='正在连接网络 AI：优先 Gemini，失败时自动切换 OpenRouter、Groq；最多等待约44秒。';
  if(preview)preview.hidden=false;
  if(feedback)feedback.textContent='正在发送请求，生成结果会显示在此处…';
  try{
