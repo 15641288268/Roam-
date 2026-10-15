@@ -21,7 +21,7 @@ async function textAssistantV68(payload,env){
  const mode=String(payload.mode||'chat'),question=String(payload.prompt||'').slice(0,5000),context=JSON.stringify(payload.context||{}).slice(0,8000);
  if(!question.trim())return {error:'请输入 AI 请求',status:400};
  const schemas={plan:'{"summary":"说明","destination":"城市","days":[{"day":1,"places":[{"name":"真实景点名称","activity":"游玩活动","time":"09:00","type":"景点","minutes":90,"cost":0}]}]}',place:'{"answer":"景点建议、附近餐饮、游览时长及待核实信息"}',optimize:'{"answer":"优化建议，按天说明行程与交通安排"}',budget:'{"answer":"预算分析与省钱建议"}'};
- const prompt='你是 Roam 旅行助手。仅用简体中文，不能虚构实时票价、营业时间、实时班次、预约网址。JSON 必须有效。'+(mode==='plan'?'地点名必须是地图上的真实实体，活动另写activity。每天最多8个地点；如要求超过5天，先输出前5天并在summary说明可继续生成后续日期。输出简洁，每个景点不超过60字。':'')+'按照 JSON 格式返回：'+(schemas[mode]||'{"answer":"中文答复"}')+'\n旅行上下文：'+context+'\n用户要求：'+question;
+ const prompt='你是 Roam 旅行助手。仅用简体中文，不能虚构实时票价、营业时间、实时班次、预约网址。JSON 必须有效。'+(mode==='plan'?'地点名必须是地图上的真实实体，活动另写activity。每天最多8个地点，按用户指定的全部日期输出；如输出受限，优先保留已完成的天数。输出简洁，每个景点不超过60字。':'')+'按照 JSON 格式返回：'+(schemas[mode]||'{"answer":"中文答复"}')+'\n旅行上下文：'+context+'\n用户要求：'+question;
  const errors=[];
  const repairPlan=(p)=>{
   if(mode!=='plan'||!p||typeof p!=='object')return p;
