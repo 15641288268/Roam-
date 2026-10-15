@@ -307,3 +307,67 @@ dialog input:not([type="checkbox"]):not([type="radio"]),dialog select,dialog tex
 nav#tabs{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:4px!important;flex-wrap:nowrap!important;overflow:visible!important;width:100%;max-width:100%;box-sizing:border-box;padding:5px!important;min-width:0}
 nav#tabs button{display:flex!important;align-items:center;justify-content:center;flex:initial!important;width:100%!important;min-width:0!important;max-width:100%!important;min-height:43px!important;padding:7px 1px!important;margin:0!important;font-size:clamp(10px,2.8vw,13px)!important;letter-spacing:-.25px;white-space:nowrap!important;overflow:hidden;text-overflow:clip;border-radius:12px!important}
 @media(max-width:380px){nav#tabs{gap:2px!important;padding:4px!important}nav#tabs button{font-size:10px!important;letter-spacing:-.45px;min-height:41px!important}}
+
+/* V133: correct fixed nav sizing. Do not combine left/right insets with width:100%. */
+@media(max-width:700px){
+ html,body{max-width:100%;overflow-x:clip}
+ nav#tabs{position:fixed!important;left:10px!important;right:10px!important;width:auto!important;max-width:none!important;min-width:0!important;box-sizing:border-box!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:3px!important;padding:5px!important;overflow:hidden!important}
+ nav#tabs button{box-sizing:border-box!important;min-width:0!important;width:100%!important;max-width:100%!important;padding:7px 0!important;min-height:48px!important;font-size:clamp(10px,2.7vw,12px)!important;letter-spacing:-.45px!important}
+ #aiTripStartV77,#aiTripEndV77{display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important;font-size:16px!important;padding:8px 5px!important}
+ #aiTripStartV77::-webkit-date-and-time-value,#aiTripEndV77::-webkit-date-and-time-value{min-width:0!important;text-align:left!important}
+ #aiTripStartV77::-webkit-datetime-edit,#aiTripEndV77::-webkit-datetime-edit{min-width:0!important;font-size:15px!important}
+ #aiTripStartV77::-webkit-calendar-picker-indicator,#aiTripEndV77::-webkit-calendar-picker-indicator{margin:0!important;padding:0!important}
+ #aiTripStartV77,#aiTripEndV77{overflow:hidden!important}
+ #aiTripStartV77:focus,#aiTripEndV77:focus{outline-offset:-2px}
+ #aiTripStartV77{margin-bottom:2px}
+ #aiTripStartV77,#aiTripEndV77{appearance:auto!important;-webkit-appearance:auto!important}
+ #aiTripStartV77,#aiTripEndV77{flex-shrink:1!important}
+ #aiTripStartV77,#aiTripEndV77{border-radius:12px!important}
+ #aiTripStartV77,#aiTripEndV77{line-height:1.4!important}
+ #aiTripStartV77,#aiTripEndV77{height:48px!important}
+ #aiTripStartV77,#aiTripEndV77{min-height:48px!important}
+ #aiTripStartV77,#aiTripEndV77{margin-inline:0!important}
+ #aiTripStartV77,#aiTripEndV77{position:relative!important}
+ #aiTripStartV77,#aiTripEndV77{direction:ltr!important}
+ #aiTripStartV77,#aiTripEndV77{white-space:nowrap!important}
+ #aiTripStartV77,#aiTripEndV77{vertical-align:middle!important}
+ #aiTripStartV77,#aiTripEndV77{font-variant-numeric:tabular-nums}
+ #aiTripStartV77,#aiTripEndV77{color:#243d59!important}
+ #aiTripStartV77,#aiTripEndV77{background-color:#fff!important}
+ #aiTripStartV77,#aiTripEndV77{border:1px solid #ccd9ea!important}
+ #aiTripStartV77,#aiTripEndV77{box-shadow:none!important}
+ #aiTripStartV77,#aiTripEndV77{touch-action:manipulation}
+ #aiTripStartV77,#aiTripEndV77{max-inline-size:100%!important}
+ #aiTripStartV77,#aiTripEndV77{inline-size:100%!important}
+ #aiTripStartV77,#aiTripEndV77{min-inline-size:0!important}
+ #aiTripStartV77,#aiTripEndV77{contain:layout}
+ #aiTripStartV77,#aiTripEndV77{isolation:isolate}
+ #aiTripStartV77,#aiTripEndV77{z-index:0}
+ #aiTripStartV77,#aiTripEndV77{transform:none!important}
+ #aiTripStartV77,#aiTripEndV77{left:auto!important;right:auto!important}
+ #aiTripStartV77,#aiTripEndV77{float:none!important}
+ #aiTripStartV77,#aiTripEndV77{clear:both}
+ #aiTripStartV77,#aiTripEndV77{overflow-clip-margin:0}
+ #aiTripStartV77,#aiTripEndV77{text-overflow:clip}
+ #aiTripStartV77,#aiTripEndV77{user-select:auto}
+ #aiTripStartV77,#aiTripEndV77{-webkit-user-select:auto}
+ #aiTripStartV77,#aiTripEndV77{opacity:1!important}
+ #aiTripStartV77,#aiTripEndV77{visibility:visible!important}
+ #aiTripStartV77,#aiTripEndV77{pointer-events:auto!important}
+ #aiTripStartV77,#aiTripEndV77{display:block!important}
+ #aiTripStartV77,#aiTripEndV77{min-height:0!important}
+ #aiTripStartV77,#aiTripEndV77{height:48px!important}
+ #aiTripStartV77,#aiTripEndV77{min-width:0!important}
+ #aiTripStartV77,#aiTripEndV77{width:100%!important}
+ #aiTripStartV77,#aiTripEndV77{max-width:100%!important}
+ #aiTripStartV77,#aiTripEndV77{box-sizing:border-box!important}
+ #aiTripStartV77,#aiTripEndV77{padding:8px 6px!important}
+ #aiTripStartV77,#aiTripEndV77{font-size:16px!important}
+ #aiTripStartV77,#aiTripEndV77{border-radius:12px!important}
+ #aiTripStartV77,#aiTripEndV77{margin:5px 0 0!important}
+ #aiTripStartV77,#aiTripEndV77{overflow:hidden!important}
+ #aiTripStartV77,#aiTripEndV77{min-inline-size:0!important}
+ #aiTripStartV77,#aiTripEndV77{max-inline-size:100%!important}
+ #aiTripStartV77,#aiTripEndV77{inline-size:100%!important}
+ #aiTripStartV77,#aiTripEndV77{contain:none!important}
+}
