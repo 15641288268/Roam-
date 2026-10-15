@@ -17,7 +17,7 @@
   return list.slice(0,80);
  };
  function addButton(){
-  const panel=document.getElementById('roamProjectPanel');
+  const panel=document.getElementById('roamInspirationPageV131');
   const insp=panel?.querySelector('.roam-inspiration-v122');
   if(!insp||insp.querySelector('#roamGuideMergeV123'))return;
   const button=document.createElement('button');button.type='button';button.id='roamGuideMergeV123';button.className='secondary';button.textContent='📋 从多篇攻略提取灵感';
