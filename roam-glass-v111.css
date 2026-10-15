@@ -160,3 +160,13 @@ dialog input:not([type="checkbox"]):not([type="radio"]),dialog select,dialog tex
  min-height:0!important;margin:0!important;padding:0!important;
  border:0!important;cursor:pointer!important;
 }
+
+/* V120 history and backup actions */
+.roam-backup-tools,.roam-history-tools{display:flex;flex-wrap:wrap;gap:9px;margin:13px 0 4px;min-width:0}
+.roam-backup-tools button,.roam-history-tools button{flex:1 1 135px;min-width:0;padding:10px 12px}
+.roam-history-dialog{width:min(92vw,520px);max-height:80dvh;overflow:auto;padding:20px!important}
+.roam-history-list{display:grid;gap:9px;margin:14px 0}
+.roam-history-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;border-radius:16px;border:1px solid #d9e5f4;background:rgba(255,255,255,.85)}
+.roam-history-item>div{min-width:0;overflow-wrap:anywhere}
+.roam-history-item small{display:block;color:#61738b;margin-top:4px}
+.roam-history-item button{flex:0 0 auto}
