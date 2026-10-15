@@ -286,3 +286,10 @@ dialog input:not([type="checkbox"]):not([type="radio"]),dialog select,dialog tex
 .roam-delay-change{padding:9px 11px;border-radius:11px;margin:6px 0;background:#eaf4ff;color:#244f7e;font-size:13px}
 .roam-delay-warning{padding:8px 10px;border-radius:10px;background:#fff2eb;color:#a34d2d;font-size:12px}
 #roamDelayResultV128 button{margin:10px 0;max-width:100%;white-space:normal}
+
+/* V130 timeline date navigation */
+.roam-timeline-day-nav{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:7px;margin:0 3px 18px;min-width:0}
+.roam-timeline-day-nav button{padding:9px 10px;border-radius:12px;white-space:nowrap;font-size:12px;min-width:0}
+.roam-timeline-day-nav button:disabled{opacity:.38}
+.roam-timeline-day-nav select{display:block;width:100%;min-width:0;max-width:100%;padding:9px 5px;border-radius:12px;text-align:center;font-size:12px;box-sizing:border-box}
+@media(max-width:390px){.roam-timeline-day-nav{gap:4px}.roam-timeline-day-nav button{padding:8px 6px;font-size:11px}.roam-timeline-day-nav select{font-size:11px;padding:8px 2px}}
