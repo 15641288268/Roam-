@@ -1,0 +1,4 @@
+/* V154: Hide empty screenshot status/preview containers. */
+#routeFileListV55:empty,#routeScreensPreviewV55:empty{display:none!important}
+#routeFileListV55,#routeScreensPreviewV55{margin:10px 0;min-height:0}
+#routeFileListV55:not(:empty),#routeScreensPreviewV55:not(:empty){padding:10px 12px;border-radius:12px;background:#f1f6fd;color:#284b70}
