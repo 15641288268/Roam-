@@ -50,7 +50,7 @@ function timeAlerts(){
 }
 function decorate(){
  if(trip()!==currentTrip){currentTrip=trip();focusId=null}
- addDaySwipe();mapLink();timeAlerts();
+ addDaySwipe();mapLink();
  const list=document.getElementById('planList');
  if(list&&!list.querySelector('.roam-v148-toolbar')){
   const bar=document.createElement('div');bar.className='roam-v148-toolbar';
