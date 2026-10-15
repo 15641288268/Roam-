@@ -5,7 +5,7 @@
  const clean=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  function movePlace(day,sourceId,targetId){
   if(sourceId===targetId)return;
-  const ordered=(db.places||[]).filter(p=>Number(p.day)===day).slice().sort((a,b)=>(minutes(a.time)??99999)-(minutes(b.time)??99999));
+  const ordered=(db.places||[]).filter(p=>Number(p.day)===day).slice().sort((a,b)=>(minutes(a.time)??99999)-(minutes(b.time)??99999)||(Number(a.order)||0)-(Number(b.order)||0));
   const from=ordered.findIndex(p=>p.id===sourceId),to=ordered.findIndex(p=>p.id===targetId);
   if(from<0||to<0)return;
   const slots=ordered.map(p=>p.time||'');
@@ -33,7 +33,7 @@
   host.hidden=mode==='timeline';timeline.hidden=mode!=='timeline';
   if(mode!=='timeline')return;
   const day=Number(selectedPlanDay)||1;
-  const places=(db.places||[]).filter(p=>Number(p.day)===day).map((p,i)=>({...p,_minutes:minutes(p.time),_index:i})).sort((a,b)=>(a._minutes??99999)-(b._minutes??99999)||a._index-b._index);
+  const places=(db.places||[]).filter(p=>Number(p.day)===day).map((p,i)=>({...p,_minutes:minutes(p.time),_index:i})).sort((a,b)=>(a._minutes??99999)-(b._minutes??99999)||(Number(a.order)||0)-(Number(b.order)||0)||a._index-b._index);
   const start=db.start?Date.parse(db.start+'T12:00:00Z'):NaN;
   const date=Number.isFinite(start)?new Date(start+(day-1)*86400000).toISOString().slice(0,10):'日期未设置';
   const bookings=(db.bookings||[]).filter(b=>b.date===date&&minutes(b.time)!==null);
