@@ -319,3 +319,14 @@ nav#tabs button{display:flex!important;align-items:center;justify-content:center
  #aiTripStartV77::-webkit-date-and-time-value,#aiTripEndV77::-webkit-date-and-time-value{min-width:0!important;text-align:left!important}
  #aiTripStartV77::-webkit-datetime-edit,#aiTripEndV77::-webkit-datetime-edit{min-width:0!important;font-size:15px!important}
 }
+
+/* V134: date controls should fit the date, not stretch across the card */
+#aiTripStartV77,#aiTripEndV77{display:block!important;box-sizing:border-box!important;width:clamp(175px,54vw,228px)!important;max-width:100%!important;min-width:0!important;height:44px!important;min-height:44px!important;padding:6px 9px!important;font-size:15px!important}
+.grid:has(#aiTripStartV77){display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:13px!important;width:100%!important;min-width:0!important}
+.grid:has(#aiTripStartV77)>label{display:block!important;width:100%!important;min-width:0!important;max-width:100%!important}
+.roam-auto-date-note{font-size:12px;line-height:1.55;color:#47729d;margin:10px 0 0}
+@media(max-width:700px){
+ #aiTripStartV77,#aiTripEndV77{width:clamp(175px,54vw,228px)!important;max-width:100%!important;height:44px!important;min-height:44px!important;padding:6px 9px!important;font-size:15px!important}
+ .grid:has(#aiTripStartV77){display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:13px!important}
+ .grid:has(#aiTripStartV77)>label{width:100%!important;min-width:0!important}
+}
