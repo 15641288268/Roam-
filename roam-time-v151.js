@@ -65,9 +65,11 @@ function showUndo(previous){
 }
 function decorate(){
  const list=document.getElementById('planList');if(!list)return;
- list.querySelector('#roamConflictV151')?.remove();
- const {conflicts}=calculate();if(!conflicts.length)return;
- const box=document.createElement('div');box.id='roamConflictV151';box.className='roam-v151-box';
+ const {conflicts}=calculate();
+ const signature=JSON.stringify({day:Number(selectedPlanDay)||1,conflicts:conflicts.map(x=>[x.from.id,x.to.id,x.delay,x.travel,x.stay])});
+ const existing=list.querySelector('#roamConflictV151');if(existing?.dataset.signature===signature)return;
+ existing?.remove();if(!conflicts.length)return;
+ const box=document.createElement('div');box.id='roamConflictV151';box.className='roam-v151-box';box.dataset.signature=signature;
  box.innerHTML='<h3>⚠ 发现 '+conflicts.length+' 处时间可能冲突</h3>'+
  conflicts.slice(0,4).map(x=>'<p>'+escape(x.from.name)+' → '+escape(x.to.name)+'：交通 '+x.travel+' 分钟'+(x.stay?'，停留 '+x.stay+' 分钟':'（未填写停留时长）')+'，预计至少晚 '+x.delay+' 分钟。</p>').join('')+
  '<p>仅根据已填写的时间计算，未填写的路段不会被判断为无冲突。</p><button type="button">预览顺延方案</button>';
