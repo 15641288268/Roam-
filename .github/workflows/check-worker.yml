@@ -1,0 +1,13 @@
+name: Worker syntax check
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  check-worker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Worker JavaScript syntax
+        run: node --check worker/roam-ai-worker.js
