@@ -104,3 +104,12 @@ body > header #roamVersionBadge {
 button.roam-date-edit.secondary{margin-left:auto;min-width:0;white-space:nowrap;min-height:39px;padding:8px 13px!important;border-radius:13px!important;background:rgba(226,237,252,.9)!important;color:#265b97!important;border:1px solid rgba(105,154,210,.22)!important;box-shadow:none!important;font-size:14px;font-weight:650}
 .roam-date-edit span{font-size:21px;line-height:10px;vertical-align:-1px;margin-left:4px}
 @media(max-width:380px){#calendarActionsV105{padding:12px!important}.roam-date-current strong{font-size:14px!important}button.roam-date-edit.secondary{padding:8px 10px!important;font-size:13px}}
+
+/* V116: contain iOS date input within calendar dialog */
+.roam-date-list-dialog,.roam-date-list-dialog *{box-sizing:border-box}
+.roam-date-list-dialog{max-width:calc(100vw - 24px)!important;overflow-x:hidden!important}
+.roam-date-footer{display:flex!important;flex-direction:column!important;min-width:0!important;max-width:100%!important}
+.roam-date-footer label{display:flex!important;flex-direction:column!important;gap:8px;width:100%!important;min-width:0!important;max-width:100%!important;overflow:hidden}
+.roam-date-footer input[type="date"]{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;flex:0 1 auto!important;padding:10px 12px!important;box-sizing:border-box!important;-webkit-appearance:none;appearance:none}
+.roam-date-footer #roamAddBlank{width:100%;max-width:100%;min-width:0}
+@media(max-width:600px){.roam-date-list-dialog{width:calc(100vw - 24px)!important;padding:18px!important}.roam-date-footer input[type="date"]{font-size:16px!important}}
