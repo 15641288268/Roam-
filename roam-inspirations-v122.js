@@ -2,9 +2,12 @@
 (function(){
  const normalized=s=>String(s||'').normalize('NFKC').toLowerCase().replace(/[\s·・,，。()（）\-]/g,'');
  function items(){if(!Array.isArray(db.inspirations))db.inspirations=[];return db.inspirations}
+ let activeTrip=null,refresh=null;
  function mount(){
   const panel=document.getElementById('roamInspirationPageV131');if(!panel)return;
-  if(panel.querySelector('.roam-inspiration-v122'))return;
+  if(refresh&&activeTrip===roamProjects.active){refresh();return}
+  panel.querySelector('.roam-inspiration-v122')?.remove();
+  activeTrip=roamProjects.active;
   const entry=document.createElement('section');entry.className='roam-inspiration-v122';
   entry.innerHTML='<div class="roam-inspiration-head"><div><h3>✨ 旅行灵感库 <small id="roamInspirationCount">0</small></h3><p>先收藏想去的地点，再决定加入哪一天。不同旅行独立保存。</p></div></div>'+
   '<details><summary>＋ 收集景点或攻略地点</summary><label>地点名称（每行一个）<textarea id="roamInspirationNames" placeholder="平野神社\n宇治平等院\n锦市场"></textarea></label><label>攻略来源（可选）<input id="roamInspirationSource" placeholder="例如：朋友推荐 / 攻略截图 / 网站"></label><button type="button" id="roamInspirationAdd">保存到灵感库</button></details>'+
@@ -29,19 +32,19 @@
     if(found){duplicate++;if(source&&found.source!==source)found.source=[found.source,source].filter(Boolean).join('；').slice(0,500);continue}
     items().push({id:uid(),name,source,createdAt:new Date().toISOString()});added++;
    }
-   persist();alert('已收藏 '+added+' 个地点'+(duplicate?'；合并重复 '+duplicate+' 个':''));
+   entry.querySelector('#roamInspirationNames').value='';persist();redraw();alert('已收藏 '+added+' 个地点'+(duplicate?'；合并重复 '+duplicate+' 个':''));
   };
   list.onclick=e=>{
    const btn=e.target.closest('button[data-action]'),row=btn?.closest('[data-inspiration]');if(!row)return;
    const index=items().findIndex(x=>x.id===row.dataset.inspiration);if(index<0)return;
    const item=items()[index];
-   if(btn.dataset.action==='remove'){if(!confirm('从灵感库删除「'+item.name+'」？不会删除行程里的地点。'))return;items().splice(index,1);persist();return}
+   if(btn.dataset.action==='remove'){if(!confirm('从灵感库删除「'+item.name+'」？不会删除行程里的地点。'))return;items().splice(index,1);persist();redraw();return}
    const day=Number(row.querySelector('select').value)||1;
    if(db.places.some(p=>Number(p.day)===day&&normalized(p.name)===normalized(item.name)))return alert('这一天已经安排了该地点');
    db.places.push({id:uid(),day,time:'',name:item.name,english:'',type:'景点',cost:0,currency:db.currency,note:item.source?'灵感来源：'+item.source:''});
    db.days=Math.max(Number(db.days)||1,day);persist();alert('已将「'+item.name+'」加入第 '+day+' 天。');
   };
-  redraw();
+  refresh=redraw;redraw();
  }
  const previous=renderProjects;
  renderProjects=function(...args){const result=previous.apply(this,args);mount();return result};
