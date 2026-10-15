@@ -44,7 +44,7 @@ async function textAssistantV68(payload,env){
  };
  const requiredDays=Number(payload.context?.locked?.days)||0;
  const accept=(value,provider)=>{const parsed=repairPlan(parseAIJSON(typeof value==='string'?value:JSON.stringify(value||'')));if(!parsed)return null;if(mode==='plan'){
-  if(!Array.isArray(parsed.days)||!parsed.days.length||!destinationCheck(parsed))return null;
+  if(!Array.isArray(parsed.days)||!parsed.days.length||(!payload.context?.allowDestinationRepair&&!destinationCheck(parsed)))return null;
   if(requiredDays&&parsed.days.length!==requiredDays)return null;
   const ids=parsed.days.map(d=>Number(d.day));
   if(new Set(ids).size!==ids.length||ids.some(n=>!Number.isInteger(n)||n<1||n>requiredDays))return null;
