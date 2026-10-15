@@ -13,8 +13,6 @@
   const affected=shifted.filter((p,i)=>p.time!==slots[i]);
   const routeCount=(db.routes||[]).filter(r=>Number(r.day)===day).length;
   const reservations=(db.bookings||[]).filter(b=>b.date&&db.start&&b.date===new Date(Date.parse(db.start+'T12:00:00Z')+(day-1)*86400000).toISOString().slice(0,10));
-  const msg='将「'+ordered[from].name+'」移动到「'+ordered[to].name+'」'+(from<to?'后':'前')+'。\\n\\n将沿用原时间轴的时间位置，预计修改 '+affected.length+' 个地点的开始时间。'+(routeCount?'\\n已有 '+routeCount+' 条交通路线需要重新核对；不自动编造新路线。':'')+(reservations.length?'\\n当天有 '+reservations.length+' 项预订，预订时间保持不变，请检查冲突。':'')+'\\n\\n确认应用调整吗？';
-  if(!confirm(msg))return;
   shifted.forEach((p,i)=>{const original=db.places.find(x=>x.id===p.id);if(original){original.time=slots[i];original.order=i+1}});
   persist();
  }
