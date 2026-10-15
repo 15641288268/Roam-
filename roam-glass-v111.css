@@ -148,3 +148,15 @@ dialog input:not([type="checkbox"]):not([type="radio"]),dialog select,dialog tex
  .roam-date-list-dialog{margin-inline:auto!important}
  .roam-day-row{max-width:100%;min-width:0}
 }
+
+/* V118 — isolate Safari native date-picker dimensions from the visible border */
+.roam-date-list-dialog .roam-date-picker-label{display:block!important;width:100%!important;min-width:0!important;overflow:visible!important}
+.roam-date-picker-shell{position:relative;display:flex;align-items:center;justify-content:center;gap:12px;width:100%;max-width:100%;min-width:0;height:51px;padding:0 16px;border-radius:16px;background:#fff;border:1px solid #cad8e9;color:#213650;overflow:hidden;isolation:isolate}
+.roam-date-picker-shell #roamDateVisual{font-size:16px;font-weight:650;pointer-events:none}
+.roam-date-picker-shell>span:last-of-type{position:absolute;right:14px;color:#5c7697;pointer-events:none}
+.roam-date-list-dialog .roam-date-picker-shell #roamAddDate{
+ position:absolute!important;inset:0!important;z-index:2!important;opacity:0!important;
+ width:100%!important;height:100%!important;max-width:100%!important;
+ min-height:0!important;margin:0!important;padding:0!important;
+ border:0!important;cursor:pointer!important;
+}
