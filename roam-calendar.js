@@ -13,10 +13,10 @@ function roamAddBlankDateV105(date){
 }
 function roamMoveDateV105(from,date){
  if(!db.start)throw Error('请先设置旅行开始日期');
- const old=Number(from),offset=roamDateOffsetV105(db.start,date),count=Number(db.days)||1;
+ let old=Number(from);const offset=roamDateOffsetV105(db.start,date),count=Number(db.days)||1;
  if(!Number.isInteger(old)||old<1||old>count||!/^\d{4}-\d{2}-\d{2}$/.test(date)||Number.isNaN(offset))throw Error('无效日期');
  let target=offset+1;
- if(target<1){roamShiftDaysV105(1,1-target);db.start=date;db.days=count+1-target;target=1}
+ if(target<1){roamShiftDaysV105(1,1-target);db.start=date;db.days=count+1-target;old+=1-target;target=1}
  else if(target>count)db.days=target;
  if(old!==target){
   for(const key of ['places','routes','expenses'])for(const item of db[key]||[]){const n=Number(item.day);if(n===old)item.day=target;else if(n===target)item.day=old}
