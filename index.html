@@ -1029,28 +1029,7 @@ function voucherStore(){return new Promise((resolve,reject)=>{const r=indexedDB.
 async function voucherPut(id,file){const d=await voucherStore();return new Promise((resolve,reject)=>{const t=d.transaction('attachments','readwrite');t.objectStore('attachments').put(file,id);t.oncomplete=resolve;t.onerror=()=>reject(t.error)})}
 async function openVoucher(id){
  const popup=window.open('','_blank');
- if(popup){popup.document.write('<!doctype html><html lang="zh"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Roam 凭证</title><body style="font:16px system-ui;padding:20px">正在打开凭证…<script>/* Roam v179 release UI and Google resolver config */
-const ROAM_RELEASE='v179';
-function roamConfigureResolverV177(){
- const previous=localStorage.getItem('roamGoogleResolverV177')||'https://roma-ai.wwwluotongchuan.workers.dev/';
- const value=prompt('Google Maps 短链接解析服务 HTTPS 地址（留空恢复默认服务）',previous);
- if(value===null)return;
- const next=value.trim();
- if(next&&!/^https:\/\/[^\s]+$/i.test(next))return alert('请输入有效的 HTTPS 服务地址');
- if(next)localStorage.setItem('roamGoogleResolverV177',next);else localStorage.removeItem('roamGoogleResolverV177');
- alert('解析服务设置已保存');
-}
-(function(){
- const update=()=>{
-  const status=document.getElementById('roamResolverStatusV177');
-  if(status)status.textContent='默认连接 roma-ai 解析服务，导入前请核对地点信息。';
-  let badge=document.getElementById('roam-release-badge');
-  if(!badge){badge=document.createElement('span');badge.id='roam-release-badge';badge.style.cssText='position:fixed;top:env(safe-area-inset-top,8px);right:12px;z-index:999;color:#35628c;background:#fffdf0;border:1px solid #dbe3eb;border-radius:8px;padding:3px 7px;font-size:11px;pointer-events:none';document.body.appendChild(badge)}
-  badge.textContent='Roam '+ROAM_RELEASE;
- };
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',update);else update();
-})();
-</script></body></html>');popup.document.close()}
+ if(popup){popup.document.write('<!doctype html><html lang="zh"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Roam 凭证</title><body style="font:16px system-ui;padding:20px">正在打开凭证…</body></html>');popup.document.close()}
  try{
   const d=await voucherStore();
   const file=await new Promise((resolve,reject)=>{const r=d.transaction('attachments').objectStore('attachments').get(id);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});
@@ -1416,4 +1395,25 @@ async function askPlaceAIV68(){const prompt=document.getElementById('aiPlaceProm
 async function askTripAIV68(mode,prompt,target){const out=document.getElementById(target);out.textContent='AI 正在分析…';try{const r=await callRoamAIV68(mode,prompt,tripContextV68());out.textContent=(r.result.answer||JSON.stringify(r.result))+'\n\nAI 来源：'+r.provider+'；请核实实际价格和交通信息。'}catch(e){out.textContent='AI 分析失败：'+e.message}}
 document.getElementById('aiImport')?.addEventListener('click',importAIPlanV68);
 </script><script src="./roam-ai.js?v=92"></script><script src="./roam-guide.js?v=105"></script><script src="./roam-trip-covers.js?v=103"></script><script src="./roam-calendar.js?v=115"></script><script src="./roam-day-overview-v114.js?v=118"></script><script src="./roam-backup-v119.js?v=125"></script><script src="./roam-history-v120.js?v=125"></script><script src="./roam-inspirations-v122.js?v=139"></script><script src="./roam-guide-merge-v123.js?v=131"></script>
-<script src="./roam-inspiration-details-v139.js?v=139"></script><script src="./roam-revision-v124.js?v=136"></script><script src="./roam-audit-v125.js?v=125"></script><script src="./roam-timeline-v126.js?v=143"></script><script src="./roam-delay-v128.js?v=128"></script><script>/* V129: mount modules after all extension scripts have registered */try{renderProjects()}catch(e){console.error("Roam V129 module mount:",e)}</script><script src="./roam-auto-dates-v134.js?v=134"></script><script src="./roam-interactions-v147.js?v=153"></script><script src="./roam-interactions-v148.js?v=153"></script><script src="./roam-interactions-v149.js?v=149"></script><script src="./roam-ai-diff-v150.js?v=150"></script><script src="./roam-time-v151.js?v=151"></script><script src="./roam-home-v152.js?v=152"></script><script src="./roam-swipe.js?v=4"></script><script>window.roamCityGetDb=()=>db;window.roamCityGetDay=()=>selectedPlanDay;window.roamCityGetDraft=()=>aiPlanDraftV68;</script><script src="./roam-city-v156.js?v=161"></script><script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(e=>console.warn('Roam PWA cache:',e)));}</script><script>document.addEventListener('DOMContentLoaded',function(){const el=document.getElementById('mapCountryV172');if(!el)return;const cn=new Intl.DisplayNames(['zh-Hans'],{type:'region'}),en=new Intl.DisplayNames(['en'],{type:'region'});for(let a=65;a<=90;a++)for(let b=65;b<=90;b++){const code=String.fromCharCode(a,b),name=cn.of(code);if(name!==code){const opt=document.createElement('option');opt.value=code;opt.textContent=name+' / '+en.of(code);el.appendChild(opt)}}el.value=String(db.mapCountryV172||regionBounds()?.code||'').toUpperCase();document.getElementById('crossBorderV172').checked=!!db.crossBorderV172;roamSyncDayCountryV174()});</script></body></html>
+<script src="./roam-inspiration-details-v139.js?v=139"></script><script src="./roam-revision-v124.js?v=136"></script><script src="./roam-audit-v125.js?v=125"></script><script src="./roam-timeline-v126.js?v=143"></script><script src="./roam-delay-v128.js?v=128"></script><script>/* V129: mount modules after all extension scripts have registered */try{renderProjects()}catch(e){console.error("Roam V129 module mount:",e)}</script><script src="./roam-auto-dates-v134.js?v=134"></script><script src="./roam-interactions-v147.js?v=153"></script><script src="./roam-interactions-v148.js?v=153"></script><script src="./roam-interactions-v149.js?v=149"></script><script src="./roam-ai-diff-v150.js?v=150"></script><script src="./roam-time-v151.js?v=151"></script><script src="./roam-home-v152.js?v=152"></script><script src="./roam-swipe.js?v=4"></script><script>window.roamCityGetDb=()=>db;window.roamCityGetDay=()=>selectedPlanDay;window.roamCityGetDraft=()=>aiPlanDraftV68;</script><script src="./roam-city-v156.js?v=161"></script><script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(e=>console.warn('Roam PWA cache:',e)));}</script><script>document.addEventListener('DOMContentLoaded',function(){const el=document.getElementById('mapCountryV172');if(!el)return;const cn=new Intl.DisplayNames(['zh-Hans'],{type:'region'}),en=new Intl.DisplayNames(['en'],{type:'region'});for(let a=65;a<=90;a++)for(let b=65;b<=90;b++){const code=String.fromCharCode(a,b),name=cn.of(code);if(name!==code){const opt=document.createElement('option');opt.value=code;opt.textContent=name+' / '+en.of(code);el.appendChild(opt)}}el.value=String(db.mapCountryV172||regionBounds()?.code||'').toUpperCase();document.getElementById('crossBorderV172').checked=!!db.crossBorderV172;roamSyncDayCountryV174()});</script><script>/* Roam v179 release UI and Google resolver config */
+const ROAM_RELEASE='v179';
+function roamConfigureResolverV177(){
+ const previous=localStorage.getItem('roamGoogleResolverV177')||'https://roma-ai.wwwluotongchuan.workers.dev/';
+ const value=prompt('Google Maps 短链接解析服务 HTTPS 地址（留空恢复默认服务）',previous);
+ if(value===null)return;
+ const next=value.trim();
+ if(next&&!/^https:\/\/[^\s]+$/i.test(next))return alert('请输入有效的 HTTPS 服务地址');
+ if(next)localStorage.setItem('roamGoogleResolverV177',next);else localStorage.removeItem('roamGoogleResolverV177');
+ alert('解析服务设置已保存');
+}
+(function(){
+ const update=()=>{
+  const status=document.getElementById('roamResolverStatusV177');
+  if(status)status.textContent='默认连接 roma-ai 解析服务，导入前请核对地点信息。';
+  let badge=document.getElementById('roam-release-badge');
+  if(!badge){badge=document.createElement('span');badge.id='roam-release-badge';badge.style.cssText='position:fixed;top:env(safe-area-inset-top,8px);right:12px;z-index:999;color:#35628c;background:#fffdf0;border:1px solid #dbe3eb;border-radius:8px;padding:3px 7px;font-size:11px;pointer-events:none';document.body.appendChild(badge)}
+  badge.textContent='Roam '+ROAM_RELEASE;
+ };
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',update);else update();
+})();
+</script></body></html>
