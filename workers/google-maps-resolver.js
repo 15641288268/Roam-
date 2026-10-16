@@ -1,4 +1,4 @@
-// Roam v177 — deploy separately to Cloudflare Workers or equivalent.
+// Roam v178 — deploy separately to Cloudflare Workers or equivalent.
 // Configure ALLOWED_ORIGIN for your own GitHub Pages domain.
 // GET /?url=https%3A%2F%2Fmaps.app.goo.gl%2F...
 const ALLOWED_ORIGIN='https://15641288268.github.io';
