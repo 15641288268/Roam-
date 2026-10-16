@@ -56,8 +56,8 @@ function patch(){
 
 }
 const css=document.createElement('style');css.textContent=`
-.roam-city-tag-v156{display:block!important;width:max-content;max-width:100%;margin:6px 0 1px;padding:4px 9px!important;border-radius:9px!important;background:#e7f2f5!important;color:#20556a!important;font-size:12px!important;font-weight:650!important;text-align:left;white-space:normal}
-.roam-day-city-v156,.roam-ai-city-v156{font-size:12px;color:#446579;margin:5px 0 8px;font-weight:650}
+.roam-city-tag-v156{display:block!important;width:max-content;max-width:100%;margin:6px 0 1px;padding:4px 9px!important;border-radius:9px!important;background:#e7f2f5!important;color:#18344b!important;-webkit-text-fill-color:#18344b!important;opacity:1!important;font-size:12px!important;font-weight:650!important;text-align:left;white-space:normal}
+.roam-day-city-v156,.roam-ai-city-v156{font-size:12px;color:#243e58!important;-webkit-text-fill-color:#243e58!important;opacity:1!important;margin:5px 0 8px;font-weight:650}
 .roam-ai-city-v156{background:#e7f2f5;border-radius:8px;padding:5px 9px;width:max-content;max-width:100%}
 `;document.head.appendChild(css);
 let queued=false;const schedule=()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;patch()})};
