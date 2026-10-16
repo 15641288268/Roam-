@@ -1029,22 +1029,27 @@ function voucherStore(){return new Promise((resolve,reject)=>{const r=indexedDB.
 async function voucherPut(id,file){const d=await voucherStore();return new Promise((resolve,reject)=>{const t=d.transaction('attachments','readwrite');t.objectStore('attachments').put(file,id);t.oncomplete=resolve;t.onerror=()=>reject(t.error)})}
 async function openVoucher(id){
  const popup=window.open('','_blank');
- if(popup){popup.document.write('<!doctype html><html lang="zh"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Roam 凭证</title><body style="font:16px system-ui;padding:20px">正在打开凭证…<script>
-const ROAM_RELEASE='v178';
+ if(popup){popup.document.write('<!doctype html><html lang="zh"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Roam 凭证</title><body style="font:16px system-ui;padding:20px">正在打开凭证…<script>/* Roam v179 release UI and Google resolver config */
+const ROAM_RELEASE='v179';
 function roamConfigureResolverV177(){
  const previous=localStorage.getItem('roamGoogleResolverV177')||'https://roma-ai.wwwluotongchuan.workers.dev/';
- const value=prompt('填写你自己部署的 HTTPS Google Maps 链接解析服务地址（留空则关闭）。服务需允许当前网站跨域访问。',previous);
+ const value=prompt('Google Maps 短链接解析服务 HTTPS 地址（留空恢复默认服务）',previous);
  if(value===null)return;
  const next=value.trim();
  if(next&&!/^https:\/\/[^\s]+$/i.test(next))return alert('请输入有效的 HTTPS 服务地址');
  if(next)localStorage.setItem('roamGoogleResolverV177',next);else localStorage.removeItem('roamGoogleResolverV177');
- alert(next?'解析服务已保存':'已关闭解析服务');
+ alert('解析服务设置已保存');
 }
-document.addEventListener('DOMContentLoaded',()=>{
- const status=document.getElementById('roamResolverStatusV177');
- if(status)status.textContent='已默认连接 roma-ai 解析服务。导入前会核对识别结果。';
- const badge=document.createElement('span');badge.textContent='Roam '+ROAM_RELEASE;badge.style.cssText='position:fixed;top:env(safe-area-inset-top,8px);right:12px;z-index:999;color:#35628c;background:#fffdf0;border:1px solid #dbe3eb;border-radius:8px;padding:3px 7px;font-size:11px;pointer-events:none';document.body.appendChild(badge);
-});
+(function(){
+ const update=()=>{
+  const status=document.getElementById('roamResolverStatusV177');
+  if(status)status.textContent='默认连接 roma-ai 解析服务，导入前请核对地点信息。';
+  let badge=document.getElementById('roam-release-badge');
+  if(!badge){badge=document.createElement('span');badge.id='roam-release-badge';badge.style.cssText='position:fixed;top:env(safe-area-inset-top,8px);right:12px;z-index:999;color:#35628c;background:#fffdf0;border:1px solid #dbe3eb;border-radius:8px;padding:3px 7px;font-size:11px;pointer-events:none';document.body.appendChild(badge)}
+  badge.textContent='Roam '+ROAM_RELEASE;
+ };
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',update);else update();
+})();
 </script></body></html>');popup.document.close()}
  try{
   const d=await voucherStore();
